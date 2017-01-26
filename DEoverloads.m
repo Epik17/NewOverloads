@@ -36,11 +36,11 @@ x[t0]==x0,y[t0]==y0,z[t0]==z0,
 
 (* ::Input::Initialization:: *)
 ClearAll@manevr
-manevr[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,event_,t0_:0]:=NDSolve[
+manevr[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,event_,t0_:0]:=Quiet[NDSolve[
 myEquations[initialconditions,gammafun,nyfun,nxfun,t0]~Join~{WhenEvent[event,{"StopIntegration"}]},
 {V[t],\[Theta][t],\[Psi][t],x[t],y[t],z[t]},
 {t,t0,Infinity}
-](*/.{x_InterpolatingFunction[t]\[RuleDelayed]x[t-t0]}*)
+],{NDSolve::ihist}](*/.{x_InterpolatingFunction[t]\[RuleDelayed]x[t-t0]}*)
 manevr[___]:=$Failed
 
 
