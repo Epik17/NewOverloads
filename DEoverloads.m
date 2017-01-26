@@ -23,15 +23,15 @@
 
 
 Clear@myEquations
-myEquations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,t0_:0]:=With[{g=9.81},
-{nxfun-Sin[\[Theta][t]]==V'[t]/g,
-nyfun Cos[gammafun]-Cos[\[Theta][t]]==V[t]/g  \[Theta]'[t],
-nyfun Sin[gammafun]==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
+myEquations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,t0_:0]:=With[{g=9.81,t0rule={t->t-t0}},
+{(nxfun/.t0rule)-Sin[\[Theta][t]]==V'[t]/g,
+(nyfun Cos[gammafun]/.t0rule)-Cos[\[Theta][t]]==V[t]/g  \[Theta]'[t],
+(nyfun Sin[gammafun]/.t0rule)==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
 x'[t]==V[t]Cos[\[Theta][t]]Cos[\[Psi][t]],
 y'[t]==V[t] Sin[\[Theta][t]],
 z'[t]==-V[t] Sin[\[Psi][t]]Cos[\[Theta][t]],
-x[0]==x0,y[0]==y0,z[0]==z0,
-\[Theta][0]==\[Theta]0,  \[Psi][0]==\[Psi]0,V[0]==V0}]
+x[t0]==x0,y[t0]==y0,z[t0]==z0,
+\[Theta][t0]==\[Theta]0,  \[Psi][t0]==\[Psi]0,V[t0]==V0}]
 
 
 (* ::Input::Initialization:: *)
@@ -39,8 +39,8 @@ ClearAll@manevr
 manevr[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,event_,t0_:0]:=NDSolve[
 myEquations[initialconditions,gammafun,nyfun,nxfun,t0]~Join~{WhenEvent[event,{"StopIntegration"}]},
 {V[t],\[Theta][t],\[Psi][t],x[t],y[t],z[t]},
-{t,0,Infinity}
-]/.{x_InterpolatingFunction[t]:>x[t-t0]}
+{t,t0,Infinity}
+](*/.{x_InterpolatingFunction[t]\[RuleDelayed]x[t-t0]}*)
 manevr[___]:=$Failed
 
 
