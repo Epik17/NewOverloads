@@ -66,4 +66,15 @@ trajectoryPlot[___]:=$Failed
 (* \:0438\:0441\:043f\:043e\:043b\:044c\:0437\:0443\:0435\:0442\:0441\:044f \:0444\:0443\:043d\:043a\:0446\:0438\:044f-\:043f\:0440\:043e\:043a\:043b\:0430\:0434\:043a\:0430. \:041d\:0430\:043f\:0440\:044f\:043c\:0443\:044e, \:0441 \:043f\:0435\:0440\:0435\:0434\:0430\:0447\:0435\:0439 \:0432 ParametricPlot3D \:0440\:0435\:0448\:0435\:043d\:0438\:044f \:0432 \:0432\:0438\:0434\:0435 \:0441\:043f\:0438\:0441\:043a\:0430 \:043f\:0440\:0430\:0432\:0438\:043b, \:043f\:043e\:0447\:0435\:043c\:0443-\:0442\:043e \:043d\:0435 \:0440\:0430\:0431\:043e\:0442\:0430\:0435\:0442 *)
 
 
+(* ::Input::Initialization:: *)
+(*
+How to splice together several instances of InterpolatingFunction?
+
+http://mathematica.stackexchange.com/questions/19042/how-to-splice-together-several-instances-of-interpolatingfunction
+*)
+Clear@JoinInterpolatingFunction
+JoinInterpolatingFunction[intervals_List,flist_List]:=Module[{getGrid},getGrid[f_InterpolatingFunction,min_?NumericQ,max_?NumericQ]:={{min,f[min]}}~Join~(Transpose@{f["Grid"]//Flatten,f["ValuesOnGrid"]}//Select[#,(min<#[[1]]<max)&]&)~Join~{{max,f[max]}}//N;
+Interpolation[Table[getGrid[flist[[i]],intervals[[i]],intervals[[i+1]]],{i,Length@flist}]//Flatten[#,1]&//DeleteDuplicates[#,(#1[[1]]==#2[[1]])&]&,InterpolationOrder->1]]
+
+
 
