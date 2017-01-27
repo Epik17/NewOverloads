@@ -157,7 +157,7 @@ units[_]:="m"
 
 (* ::Input::Initialization:: *)
 Clear@plot
-plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun[t],Prepend[domain,t],PlotLabel->label,AxesLabel->{"t, s",None}]
+plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun[t],Prepend[domain,t],Frame->True,GridLines->Automatic,FrameLabel->{"t, s",label},RotateLabel->False,LabelStyle->Directive[Bold],PlotStyle->Thick]
 
 Clear@plots
 plots[manevrresult_?manevrQ]:=plot/@
