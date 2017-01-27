@@ -61,7 +61,7 @@ tFinal[___]:=$Failed
 (* ::Input::Initialization:: *)
 ClearAll@lastState
 lastState[manevrresult:{Rule__}]:=
-Through[({V,\[Theta],\[Psi],x,y,z}/.manevrresult)[tFinal[manevrresult]]]
+Through[({x,y,z,\[Theta],\[Psi],V}/.manevrresult)[tFinal[manevrresult]]]
 lastState[___]:=$Failed
 
 
@@ -86,9 +86,14 @@ How to splice together several instances of InterpolatingFunction?
 
 http://mathematica.stackexchange.com/questions/19042/how-to-splice-together-several-instances-of-interpolatingfunction
 *)
-Clear@JoinInterpolatingFunction
-JoinInterpolatingFunction[intervals_List,flist_List]:=Module[{getGrid},getGrid[f_InterpolatingFunction,min_?NumericQ,max_?NumericQ]:={{min,f[min]}}~Join~(Transpose@{f["Grid"]//Flatten,f["ValuesOnGrid"]}//Select[#,(min<#[[1]]<max)&]&)~Join~{{max,f[max]}}//N;
+Clear@joinInterpolatingFunction
+joinInterpolatingFunction[intervals_List,flist_List]:=Module[{getGrid},getGrid[f_InterpolatingFunction,min_?NumericQ,max_?NumericQ]:={{min,f[min]}}~Join~(Transpose@{f["Grid"]//Flatten,f["ValuesOnGrid"]}//Select[#,(min<#[[1]]<max)&]&)~Join~{{max,f[max]}}//N;
 Interpolation[Table[getGrid[flist[[i]],intervals[[i]],intervals[[i+1]]],{i,Length@flist}]//Flatten[#,1]&//DeleteDuplicates[#,(#1[[1]]==#2[[1]])&]&,InterpolationOrder->1]]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@joinManeuvers
+joinManeuvers[manevrres1_,manevrres2_]:=MapThread[Rule,{functionslist,joinInterpolatingFunction[{0,tFinal[manevrres1],tFinal[manevrres2]},{#/.manevrres1,#/.manevrres2}]&/@functionslist}]
 
 
 
