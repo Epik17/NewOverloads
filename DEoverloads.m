@@ -47,6 +47,33 @@ myEquations[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
+Clear@myEquations
+myEquations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,t0_:0]:=With[
+
+{g=9.81,
+t0rule={t->t-t0} (* for correcting domains of resulting InterpolationFunctions *)},
+
+{
+(* equations of motion *)
+(nxfun/.t0rule)-Sin[\[Theta][t]]==V'[t]/g,
+(nyfun Cos[gammafun]/.t0rule)-Cos[\[Theta][t]]==V[t]/g  \[Theta]'[t],
+(nyfun Sin[gammafun]/.t0rule)==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
+
+(* kinematic relationships, which may be considered as a part of Eqs of M. *)
+(*x'[t]\[Equal]V[t]Cos[\[Theta][t]]Cos[\[Psi][t]],
+y'[t]\[Equal]V[t] Sin[\[Theta][t]],
+z'[t]\[Equal]-V[t] Sin[\[Psi][t]]Cos[\[Theta][t]],*)
+
+(* initial conditions *)
+(*x[t0]\[Equal]x0,y[t0]\[Equal]y0,z[t0]\[Equal]z0,*)
+\[Theta][t0]==\[Theta]0,  \[Psi][t0]==\[Psi]0,V[t0]==V0
+}
+]
+
+myEquations[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
 Clear@manevrQ
 manevrQ[arg_]:=MatchQ[arg,{Rule__}]
 
@@ -89,7 +116,7 @@ maneuver::msg2="2";*)
 
 maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=((*Message[maneuver::msg1];*)First@Quiet[NDSolve[
 myEquations[initialconditions,gammafun,nyfun,nxfun,t0]~Join~{WhenEvent[event,{"StopIntegration"}]},
-{V,\[Theta],\[Psi],x,y,z},
+{x,y,z,\[Theta],\[Psi],V},
 {t,t0,Infinity}
 ],{NDSolve::ihist}])
 
@@ -126,7 +153,7 @@ Interpolation[Table[getGrid[flist[[i]],intervals[[i]],intervals[[i+1]]],{i,Lengt
 
 
 (* ::Input::Initialization:: *)
-functionslist={V,\[Theta],\[Psi],x,y,z};
+functionslist={x,y,z,\[Theta],\[Psi],V};
 
 
 (* ::Input::Initialization:: *)
