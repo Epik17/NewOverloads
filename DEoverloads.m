@@ -53,8 +53,20 @@ maneuver[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
+ClearAll@resultDomain
+resultDomain[manevrresult:{Rule__}]:=First@((manevrresult[[1,1]]/.manevrresult))["Domain"]
+resultDomain[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
+ClearAll@tStart
+tStart[manevrresult:{Rule__}]:=First@resultDomain@manevrresult
+tStart[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
 ClearAll@tFinal
-tFinal[manevrresult:{Rule__}]:=Last@First@((manevrresult[[1,1]]/.manevrresult))["Domain"]
+tFinal[manevrresult:{Rule__}]:=Last@resultDomain@manevrresult
 tFinal[___]:=$Failed
 
 
