@@ -46,9 +46,9 @@ x[t0]==x0,y[t0]==y0,z[t0]==z0,
 
 (* ::Input::Initialization:: *)
 ClearAll@manevr
-manevr[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,event_,t0_:0]:=Quiet[NDSolve[
+manevr[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,event_,t0_:0]:=First@Quiet[NDSolve[
 myEquations[initialconditions,gammafun,nyfun,nxfun,t0]~Join~{WhenEvent[event,{"StopIntegration"}]},
-{V[t],\[Theta][t],\[Psi][t],x[t],y[t],z[t]},
+{V,\[Theta],\[Psi],x,y,z},
 {t,t0,Infinity}
 ],{NDSolve::ihist}](*/.{x_InterpolatingFunction[t]\[RuleDelayed]x[t-t0]}*)
 manevr[___]:=$Failed
@@ -56,24 +56,30 @@ manevr[___]:=$Failed
 
 (* ::Input::Initialization:: *)
 ClearAll@tFinal
-tFinal[manevrresult:{Rule_}]:=Last@First@(Head@First@(manevrresult[[1,1,1]]/.manevrresult))["Domain"]
+tFinal[manevrresult:{Rule__}]:=Last@First@((manevrresult[[1,1]]/.manevrresult))["Domain"]
 tFinal[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
+ClearAll@lastState
+lastState[manevrresult:{Rule__}]:=
+Through[({V,\[Theta],\[Psi],x,y,z}/.manevrresult)[tFinal[manevrresult]]]
+lastState[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
 ClearAll@trajPlotArgs 
-trajPlotArgs[manevrresult:{Rule_}]:={{x[t],y[t],z[t]}/.manevrresult,tFinal[manevrresult]}
+trajPlotArgs[manevrresult:{Rule__}]:={#[t]&/@({x,y,z}/.manevrresult),tFinal[manevrresult]}
 trajPlotArgs[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
 ClearAll@trajectoryPlot
 trajectoryPlot[{input_,tfin_}]:=ParametricPlot3D[input,{t,0,tfin},PlotRange->Full,AxesLabel->{"x","y","z"}]
-
-trajectoryPlot[manevrresult:{Rule_}]:=trajectoryPlot[trajPlotArgs[manevrresult]]
+trajectoryPlot[manevrresult:{Rule__}]:=trajectoryPlot[trajPlotArgs[manevrresult]]
 trajectoryPlot[___]:=$Failed
 
-(* \:0438\:0441\:043f\:043e\:043b\:044c\:0437\:0443\:0435\:0442\:0441\:044f \:0444\:0443\:043d\:043a\:0446\:0438\:044f-\:043f\:0440\:043e\:043a\:043b\:0430\:0434\:043a\:0430. \:041d\:0430\:043f\:0440\:044f\:043c\:0443\:044e, \:0441 \:043f\:0435\:0440\:0435\:0434\:0430\:0447\:0435\:0439 \:0432 ParametricPlot3D \:0440\:0435\:0448\:0435\:043d\:0438\:044f \:0432 \:0432\:0438\:0434\:0435 \:0441\:043f\:0438\:0441\:043a\:0430 \:043f\:0440\:0430\:0432\:0438\:043b, \:043f\:043e\:0447\:0435\:043c\:0443-\:0442\:043e \:043d\:0435 \:0440\:0430\:0431\:043e\:0442\:0430\:0435\:0442 *)
+(* \:0438\:0441\:043f\:043e\:043b\:044c\:0437\:0443\:0435\:0442\:0441\:044f \:0444\:0443\:043d\:043a\:0446\:0438\:044f-\:043f\:0440\:043e\:043a\:043b\:0430\:0434\:043a\:0430 trajPlotArgs. \:041d\:0430\:043f\:0440\:044f\:043c\:0443\:044e, \:0441 \:043f\:0435\:0440\:0435\:0434\:0430\:0447\:0435\:0439 \:0432 ParametricPlot3D \:0440\:0435\:0448\:0435\:043d\:0438\:044f \:0432 \:0432\:0438\:0434\:0435 \:0441\:043f\:0438\:0441\:043a\:0430 \:043f\:0440\:0430\:0432\:0438\:043b, ParametricPlot3D \:043f\:043e\:0447\:0435\:043c\:0443-\:0442\:043e \:043d\:0435 \:0440\:0430\:0431\:043e\:0442\:0430\:0435\:0442 \:043f\:0440\:0438 \:0434\:043e\:0431\:0430\:0432\:043b\:0435\:043d\:0438\:0438 \:043e\:043f\:0446\:0438\:0439 \:043a \:0433\:0440\:0430\:0444\:0438\:043a\:0443; \:044f\:0432\:043d\:043e \:043a\:0430\:043a\:043e\:0439-\:0442\:043e \:0433\:043b\:044e\:043a \:043c\:0430\:0442\:0435\:043c\:0430\:0442\:0438\:043a\:0438 *)
 
 
 (* ::Input::Initialization:: *)
