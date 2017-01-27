@@ -20,8 +20,6 @@
 
 
 (* ::Input::Initialization:: *)
-
-
 Clear@myEquations
 myEquations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,t0_:0]:=With[
 
@@ -45,13 +43,13 @@ x[t0]==x0,y[t0]==y0,z[t0]==z0,
 
 
 (* ::Input::Initialization:: *)
-ClearAll@manevr
-manevr[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,event_,t0_:0]:=First@Quiet[NDSolve[
+ClearAll@maneuver
+maneuver[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,event_,t0_:0]:=First@Quiet[NDSolve[
 myEquations[initialconditions,gammafun,nyfun,nxfun,t0]~Join~{WhenEvent[event,{"StopIntegration"}]},
 {V,\[Theta],\[Psi],x,y,z},
 {t,t0,Infinity}
 ],{NDSolve::ihist}](*/.{x_InterpolatingFunction[t]\[RuleDelayed]x[t-t0]}*)
-manevr[___]:=$Failed
+maneuver[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
