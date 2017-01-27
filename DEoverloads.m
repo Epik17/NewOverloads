@@ -52,20 +52,21 @@ manevrQ[arg_]:=MatchQ[arg,{Rule__}]
 
 
 (* ::Input::Initialization:: *)
-ClearAll@manevrDomain
-manevrDomain[manevrresult_?manevrQ]:=First@((manevrresult[[1,1]]/.manevrresult))["Domain"]
-manevrDomain[___]:=$Failed
+ClearAll@domain
+domain[intfun_InterpolatingFunction]:=First@(intfun["Domain"])
+domain[manevrresult_?manevrQ]:=domain[manevrresult[[1,1]]/.manevrresult]
+domain[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tStart
-tStart[manevrresult_?manevrQ]:=First@manevrDomain@manevrresult
+tStart[manevrresult_?manevrQ]:=First@domain@manevrresult
 tStart[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tFinal
-tFinal[manevrresult_?manevrQ]:=Last@manevrDomain@manevrresult
+tFinal[manevrresult_?manevrQ]:=Last@domain@manevrresult
 tFinal[___]:=$Failed
 
 
@@ -104,6 +105,16 @@ trajectoryPlot[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
+Clear@inequality
+inequality[domain_]:=First@domain<=t<=Last@domain
+
+
+(* ::Input::Initialization:: *)
+Clear@joinInterpolatingFunctionPiecewise
+joinInterpolatingFunctionPiecewise[args:{InterpolatingFunction__}]:=Piecewise[MapThread[List,{#[t]&/@args,inequality/@(domain/@args)}]]
+
+
+(* ::Input::Initialization:: *)
 (*
 How to splice together several instances of InterpolatingFunction?
 
@@ -128,7 +139,9 @@ joinable[___]:=$Failed
 ClearAll@joinManeuvers
 joinManeuvers::domainerror="The maneuvers are not joinable. Their domains are `1` and `2`";
 joinManeuvers[manevrres1_?manevrQ,manevrres2_?manevrQ]/;joinable[manevrres1,manevrres2]:=MapThread[Rule,{functionslist,joinInterpolatingFunction[{0,tFinal[manevrres1],tFinal[manevrres2]},{#/.manevrres1,#/.manevrres2}]&/@functionslist}]
-joinManeuvers[manevrres1_:{Rule__},manevrres2_:{Rule__}]:=($Failed; Message[joinManeuvers::domainerror,manevrDomain[manevrres1],manevrDomain[manevrres2]])
+
+joinManeuvers[manevrres1_?manevrQ,manevrres2_?manevrQ]:=($Failed; Message[joinManeuvers::domainerror,domain[manevrres1],domain[manevrres2]])
+
 joinManeuvers[___]:=$Failed
 
 
@@ -152,7 +165,7 @@ plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun[t],Prepend[domain,t],
 
 Clear@plots
 plots[manevrresult_?manevrQ]:=plot/@
-({#/.manevrresult,manevrDomain[manevrresult],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)
+({#/.manevrresult,domain[manevrresult],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)
 
 
 
