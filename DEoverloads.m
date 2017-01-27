@@ -121,4 +121,27 @@ joinManeuvers[manevrres1_:{Rule__},manevrres2_:{Rule__}]:=($Failed; Message[join
 joinManeuvers[___]:=$Failed
 
 
+(* ::Input::Initialization:: *)
+Clear@converter
+converter[V]:=3.6
+converter[\[Psi]|\[Theta]]:=1/Degree
+converter[_]:=1
+
+
+(* ::Input::Initialization:: *)
+Clear@units
+units[V]:="kph"
+units[\[Psi]|\[Theta]]:="\[Degree]"
+units[_]:="m"
+
+
+(* ::Input::Initialization:: *)
+Clear@plot
+plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun[t],Prepend[domain,t],PlotLabel->label,AxesLabel->{"t, s",None}]
+
+Clear@plots
+plots[manevrresult:{Rule__}]:=plot/@
+({#/.manevrresult,manevrDomain[manevrresult],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)
+
+
 
