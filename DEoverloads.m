@@ -53,20 +53,20 @@ maneuver[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
-ClearAll@resultDomain
-resultDomain[manevrresult:{Rule__}]:=First@((manevrresult[[1,1]]/.manevrresult))["Domain"]
-resultDomain[___]:=$Failed
+ClearAll@manevrDomain
+manevrDomain[manevrresult:{Rule__}]:=First@((manevrresult[[1,1]]/.manevrresult))["Domain"]
+manevrDomain[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tStart
-tStart[manevrresult:{Rule__}]:=First@resultDomain@manevrresult
+tStart[manevrresult:{Rule__}]:=First@manevrDomain@manevrresult
 tStart[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tFinal
-tFinal[manevrresult:{Rule__}]:=Last@resultDomain@manevrresult
+tFinal[manevrresult:{Rule__}]:=Last@manevrDomain@manevrresult
 tFinal[___]:=$Failed
 
 
@@ -104,8 +104,21 @@ Interpolation[Table[getGrid[flist[[i]],intervals[[i]],intervals[[i+1]]],{i,Lengt
 
 
 (* ::Input::Initialization:: *)
+functionslist={V,\[Theta],\[Psi],x,y,z};
+
+
+(* ::Input::Initialization:: *)
+Clear@joinable
+joinable[manevrres1_:{Rule__},manevrres2_:{Rule__}]:=tStart[manevrres2]==tFinal[manevrres1]
+joinable[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
 ClearAll@joinManeuvers
-joinManeuvers[manevrres1_,manevrres2_]:=MapThread[Rule,{functionslist,joinInterpolatingFunction[{0,tFinal[manevrres1],tFinal[manevrres2]},{#/.manevrres1,#/.manevrres2}]&/@functionslist}]
+joinManeuvers::domainerror="The maneuvers are not joinable. Their domains are `1` and `2`";
+joinManeuvers[manevrres1_:{Rule__},manevrres2_:{Rule__}]/;joinable[manevrres1,manevrres2]:=MapThread[Rule,{functionslist,joinInterpolatingFunction[{0,tFinal[manevrres1],tFinal[manevrres2]},{#/.manevrres1,#/.manevrres2}]&/@functionslist}]
+joinManeuvers[manevrres1_:{Rule__},manevrres2_:{Rule__}]:=($Failed; Message[joinManeuvers::domainerror,manevrDomain[manevrres1],manevrDomain[manevrres2]])
+joinManeuvers[___]:=$Failed
 
 
 
