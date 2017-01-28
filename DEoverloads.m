@@ -159,7 +159,7 @@ units[_]:="m"
 
 (* ::Input::Initialization:: *)
 ClearAll@plot
-plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun,Prepend[domain,t],Frame->True,GridLines->Automatic,FrameLabel->{"t, s",label},RotateLabel->False,LabelStyle->Directive[Bold],PlotStyle->Thick]
+plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun,Prepend[domain,t],Frame->True,GridLines->Automatic,FrameLabel->{"t, s",label},RotateLabel->False,LabelStyle->Directive[Bold],PlotStyle->Thick,PlotRange->Full]
 plot[___]:=$Failed
 
 ClearAll@plots
