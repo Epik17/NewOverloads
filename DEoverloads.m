@@ -143,6 +143,7 @@ EvaluationMonitor:>{
 Sow[nyfun Cos[gammafun]-Cos[\[Theta][t]],\[Theta]dot],
 Sow[N[gammafun/Degree],gam],
 Sow[N@nyfun,ny],
+Sow[N@nxfun,nx],
 Sow[t,tt],
 Sow[-((9.81 nyfun Sin[gammafun])/(V [t]Cos[\[Theta][t]])),\[Psi]dot]
 }
@@ -214,7 +215,7 @@ SetAttributes[idetails,HoldFirst]
 SetAttributes[details,HoldFirst]
 
 idetails[man_,tags_]:=ReleaseHold[Flatten[(Reap[man;,tags])[[2]],1]]
-details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[TableForm[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]]
+details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nx}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[TableForm[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]]
 
 ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
 
