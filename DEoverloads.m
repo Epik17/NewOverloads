@@ -89,19 +89,23 @@ domain[intfun_InterpolatingFunction]:=First@(intfun["Domain"])
 domain[intfun:InterpolatingFunction[___][targ___]]:=domain[Head@intfun]+t-targ
 domain[manevrresult_?manevrQ]:=domain[manevrresult[[1,2]]]
 domain[joinedmanevr_?joinedmanevrQ]:={joinedmanevr[[1,2,1,1,2,1]],joinedmanevr[[1,2,1,-1,2,3]]}
-domain[___]:=$Failed
+ErrorChecking`setConsistencyChecks[domain,"Valid syntax:
+domain[intfun_InterpolatingFunction] or
+domain[intfun:InterpolatingFunction[___][targ___] or
+domain[manevrresult_?manevrQ] or
+domain[joinedmanevr_?joinedmanevrQ]"]
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tStart
 tStart[manevrresult_?manevrQ]:=First@domain@manevrresult
-tStart[___]:=$Failed
+(*ConsistencyChecked*)
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tFinal
 tFinal[manevrresult_?manevrQ]:=Last@domain@manevrresult
-tFinal[___]:=$Failed
+(*ConsistencyChecked*)
 
 
 (* ::Input::Initialization:: *)
@@ -113,7 +117,9 @@ appendt[funlist_List]:=#[t]&/@funlist
 ClearAll@lastState
 lastState[manevrresult_?manevrQ]:=
 ((appendt@functionslist)/.manevrresult)/.{t->tFinal[manevrresult]}
-lastState[___]:=$Failed
+
+ErrorChecking`setConsistencyChecks[{tStart,tFinal,lastState},"Valid syntax:
+tStart[manevrresult_?manevrQ]"];
 
 
 (* ::Input::Initialization:: *)
