@@ -110,7 +110,18 @@ tFinal[manevrresult_?manevrQ]:=Last@domain@manevrresult
 
 (* ::Input::Initialization:: *)
 Clear@appendt
-appendt[funlist_List]:=#[t]&/@funlist
+appendt::tencountered="t encountered in the list of functions' symbols was omitted";
+
+appendt[funlist:{Except[t,_Symbol]..}]:=Module[{},
+ClearAll[t];
+#[t]&/@funlist]
+
+appendt[funlist:{_Symbol..}]:=Module[{},
+ClearAll[t];
+Message[appendt::tencountered];
+appendt@DeleteCases[funlist,t]]
+
+ErrorChecking`setConsistencyChecks[appendt,"Functions symbols list must contain nothing but clear symbols"];
 
 
 (* ::Input::Initialization:: *)
@@ -127,14 +138,8 @@ ClearAll@maneuver
 maneuver::usage="
 Returns list of InterpolatingFunctions for x, y, z, \[Theta], \[Psi], V\n
 maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
-maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver
-";
-(*maneuver::msg1="1";
-maneuver::msg2="2";*)
-
+maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
 maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=(
-(*Message[maneuver::msg1];*)
-(*Print[equations[initialconditions,gammafun,nyfun,nxfun]];*)
 First@NDSolve[
 equations[initialconditions,gammafun,nyfun,nxfun]~Join~{WhenEvent[event,{"StopIntegration"}]},
 appendt@functionslist,
@@ -150,7 +155,6 @@ Sow[-((9.81 nyfun Sin[gammafun])/(V [t]Cos[\[Theta][t]])),\[Psi]dot]
 ])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]} (* domain correction *) 
 
 maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=(
-(*Message[maneuver::msg2];*)
 maneuver[lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
 
 ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:\n maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] \n or maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]"];
@@ -171,15 +175,25 @@ units[_]:="m"
 
 
 (* ::Input::Initialization:: *)
+Clear@domainQ
+domainQ[{x_?NumericQ,y_?NumericQ}]:=y>x
+domainQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
 ClearAll@plot
-plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun,Prepend[domain,t],Frame->True,GridLines->Automatic,PlotLabel->label,RotateLabel->False,LabelStyle->Directive[Bold],PlotStyle->Thick,PlotRange->Full]
-plot[___]:=$Failed
+plot[{fun_,domain_?domainQ,label_String,converter_?NumericQ}]:=Plot[converter fun,Prepend[domain,t],Frame->True,GridLines->Automatic,PlotLabel->label,RotateLabel->False,LabelStyle->Directive[Bold],PlotStyle->Thick,PlotRange->Full]
+ErrorChecking`setConsistencyChecks[plot,"Valid syntax:\n plot[{fun_Interpolating,domain_,label_,converter_}]"];
 
 ClearAll@plots
-plots[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]:=plot/@
-({#[t]/.arg,domain[arg],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)
+plots::internalerror="Some plots have invalid format";
+plots[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]:=Module[
+{result=plot/@
+({#[t]/.arg,domain[arg],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)},
+If[Not@MemberQ[result,$Failed],result,(Message[plots::internalerror];$Failed)]
+]
 
-plots[___]:=$Failed
+ErrorChecking`setConsistencyChecks[plots,"Valid syntax:\n plots[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]"];
 
 
 (* ::Input::Initialization:: *)
@@ -189,7 +203,8 @@ trajectoryPlot[funs_List,range_]:=ParametricPlot3D[funs,range,PlotRange->Full,Ax
 
 trajectoryPlot[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]:=trajectoryPlot[(appendt@{x,y,z})/.arg,Prepend[domain@arg,t]]
 
-trajectoryPlot[___]:=$Failed
+ErrorChecking`setConsistencyChecks[trajectoryPlot,"Valid syntax:\n trajectoryPlot[arg_?(joinedmanevrQ[#]||manevrQ[#]&)] or
+trajectoryPlot[funs_List,range_]"];
 
 
 (* ::Input::Initialization:: *)
