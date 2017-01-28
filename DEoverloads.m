@@ -20,17 +20,20 @@
 
 
 (* ::Input::Initialization:: *)
-Clear@myEquations
-myEquations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,t0_:0]:=With[
+Clear[t,x,y,z,\[Theta],\[Psi],V]
 
-{g=9.81,
-t0rule={t->t-t0} (* for correcting domains of resulting InterpolationFunctions *)},
+
+(* ::Input::Initialization:: *)
+Clear@equations
+equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,t0_:0]:=With[
+
+{g=9.81},
 
 {
 (* equations of motion *)
-(nxfun/.t0rule)-Sin[\[Theta][t]]==V'[t]/g,
-(nyfun Cos[gammafun]/.t0rule)-Cos[\[Theta][t]]==V[t]/g  \[Theta]'[t],
-(nyfun Sin[gammafun]/.t0rule)==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
+nxfun-Sin[\[Theta][t]]==V'[t]/g,
+nyfun Cos[gammafun]-Cos[\[Theta][t]]==V[t]/g  \[Theta]'[t],
+nyfun Sin[gammafun]==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
 
 (* kinematic relationships, which may be considered as a part of Eqs of M. *)
 x'[t]==V[t]Cos[\[Theta][t]]Cos[\[Psi][t]],
@@ -38,50 +41,39 @@ y'[t]==V[t] Sin[\[Theta][t]],
 z'[t]==-V[t] Sin[\[Psi][t]]Cos[\[Theta][t]],
 
 (* initial conditions *)
-x[t0]==x0,y[t0]==y0,z[t0]==z0,
-\[Theta][t0]==\[Theta]0,  \[Psi][t0]==\[Psi]0,V[t0]==V0
+x[0]==x0,y[0]==y0,z[0]==z0,
+\[Theta][0]==\[Theta]0,  \[Psi][0]==\[Psi]0,V[0]==V0
 }
 ]
 
-myEquations[___]:=$Failed
-
-
-(* ::Input::Initialization:: *)
-Clear@myEquations
-myEquations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,t0_:0]:=With[
-
-{g=9.81,
-t0rule={t->t-t0} (* for correcting domains of resulting InterpolationFunctions *)},
-
-{
-(* equations of motion *)
-(nxfun/.t0rule)-Sin[\[Theta][t]]==V'[t]/g,
-(nyfun Cos[gammafun]/.t0rule)-Cos[\[Theta][t]]==V[t]/g  \[Theta]'[t],
-(nyfun Sin[gammafun]/.t0rule)==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
-
-(* kinematic relationships, which may be considered as a part of Eqs of M. *)
-(*x'[t]\[Equal]V[t]Cos[\[Theta][t]]Cos[\[Psi][t]],
-y'[t]\[Equal]V[t] Sin[\[Theta][t]],
-z'[t]\[Equal]-V[t] Sin[\[Psi][t]]Cos[\[Theta][t]],*)
-
-(* initial conditions *)
-(*x[t0]\[Equal]x0,y[t0]\[Equal]y0,z[t0]\[Equal]z0,*)
-\[Theta][t0]==\[Theta]0,  \[Psi][t0]==\[Psi]0,V[t0]==V0
-}
-]
-
-myEquations[___]:=$Failed
+equations[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
 Clear@manevrQ
-manevrQ[arg_]:=MatchQ[arg,{Rule__}]
+manevrQ[arg_]:=MatchQ[arg,{Rule[___,InterpolatingFunction[___][___]]..}]
+
+
+(* ::Input::Initialization:: *)
+Clear@initialConditionsQ
+initialConditionsQ[arg_]:=MatchQ[arg,{__?NumericQ}]&&Length[arg]==6
+
+
+(* ::Input::Initialization:: *)
+functionslist={x,y,z,\[Theta],\[Psi],V};
+
+
+(* ::Input::Initialization:: *)
+Clear@joinedmanevrQ
+joinedmanevrQ[arg_]:=MatchQ[arg,{Rule[___,_Piecewise]..}]
 
 
 (* ::Input::Initialization:: *)
 ClearAll@domain
 domain[intfun_InterpolatingFunction]:=First@(intfun["Domain"])
-domain[manevrresult_?manevrQ]:=domain[manevrresult[[1,1]]/.manevrresult]
+domain[intfun:InterpolatingFunction[___][targ___]]:=domain[Head@intfun]+t-targ
+domain[manevrresult_?manevrQ]:=domain[manevrresult[[1,2]]]
+domain[joinedmanevr_?joinedmanevrQ]:={joinedmanevr[[1,2,1,1,2,1]],joinedmanevr[[1,2,1,-1,2,3]]}
 domain[___]:=$Failed
 
 
@@ -98,15 +90,15 @@ tFinal[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
-ClearAll@lastState
-lastState[manevrresult_?manevrQ]:=
-Through[({x,y,z,\[Theta],\[Psi],V}/.manevrresult)[tFinal[manevrresult]]]
-lastState[___]:=$Failed
+Clear@appendt
+appendt[funlist_List]:=#[t]&/@funlist
 
 
 (* ::Input::Initialization:: *)
-Clear@initialConditionsQ
-initialConditionsQ[arg_]:=MatchQ[arg,{__?NumericQ}]&&Length[arg]==6
+ClearAll@lastState
+lastState[manevrresult_?manevrQ]:=
+((appendt@functionslist)/.manevrresult)/.{t->tFinal[manevrresult]}
+lastState[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
@@ -114,62 +106,19 @@ ClearAll@maneuver
 (*maneuver::msg1="1";
 maneuver::msg2="2";*)
 
-maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=((*Message[maneuver::msg1];*)First@Quiet[NDSolve[
-myEquations[initialconditions,gammafun,nyfun,nxfun,t0]~Join~{WhenEvent[event,{"StopIntegration"}]},
-{x,y,z,\[Theta],\[Psi],V},
-{t,t0,Infinity}
-],{NDSolve::ihist}])
+maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=(
+(*Message[maneuver::msg1];*)
+First@Quiet[NDSolve[
+equations[initialconditions,gammafun,nyfun,nxfun,t0]~Join~{WhenEvent[event,{"StopIntegration"}]},
+appendt@functionslist,
+{t,0,Infinity}
+],{NDSolve::ihist}])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]}
 
-maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=((*Message[maneuver::msg2];*)maneuver[lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
+maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=(
+(*Message[maneuver::msg2];*)
+maneuver[lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
 
 maneuver[___]:=$Failed
-
-
-(* ::Input::Initialization:: *)
-ClearAll@trajectoryPlot
-trajectoryPlot[manevrresult_?manevrQ]:=ParametricPlot3D[#[t]&/@({x,y,z}/.manevrresult),{t,0,tFinal[manevrresult]},PlotRange->Full,AxesLabel->{"x","y","z"},PlotStyle->Thickness[0.0075]]
-trajectoryPlot[___]:=$Failed
-
-
-(* ::Input::Initialization:: *)
-Clear@inequality
-inequality[domain_]:=First@domain<=t<=Last@domain
-
-
-(* ::Input::Initialization:: *)
-Clear@joinInterpolatingFunctionPiecewise
-joinInterpolatingFunctionPiecewise[args:{InterpolatingFunction__}]:=Piecewise[MapThread[List,{#[t]&/@args,inequality/@(domain/@args)}]]
-
-
-(* ::Input::Initialization:: *)
-(*
-How to splice together several instances of InterpolatingFunction?
-
-http://mathematica.stackexchange.com/questions/19042/how-to-splice-together-several-instances-of-interpolatingfunction
-*)
-Clear@joinInterpolatingFunction
-joinInterpolatingFunction[intervals_List,flist_List]:=Module[{getGrid},getGrid[f_InterpolatingFunction,min_?NumericQ,max_?NumericQ]:={{min,f[min]}}~Join~(Transpose@{f["Grid"]//Flatten,f["ValuesOnGrid"]}//Select[#,(min<#[[1]]<max)&]&)~Join~{{max,f[max]}}//N;
-Interpolation[Table[getGrid[flist[[i]],intervals[[i]],intervals[[i+1]]],{i,Length@flist}]//Flatten[#,1]&//DeleteDuplicates[#,(#1[[1]]==#2[[1]])&]&,InterpolationOrder->1]]
-
-
-(* ::Input::Initialization:: *)
-functionslist={x,y,z,\[Theta],\[Psi],V};
-
-
-(* ::Input::Initialization:: *)
-Clear@joinable
-joinable[manevrres1_?manevrQ,manevrres2_?manevrQ]:=tStart[manevrres2]==tFinal[manevrres1]
-joinable[___]:=$Failed
-
-
-(* ::Input::Initialization:: *)
-ClearAll@joinManeuvers
-joinManeuvers::domainerror="The maneuvers are not joinable. Their domains are `1` and `2`";
-joinManeuvers[manevrres1_?manevrQ,manevrres2_?manevrQ]/;joinable[manevrres1,manevrres2]:=MapThread[Rule,{functionslist,joinInterpolatingFunction[{0,tFinal[manevrres1],tFinal[manevrres2]},{#/.manevrres1,#/.manevrres2}]&/@functionslist}]
-
-joinManeuvers[manevrres1_?manevrQ,manevrres2_?manevrQ]:=($Failed; Message[joinManeuvers::domainerror,domain[manevrres1],domain[manevrres2]])
-
-joinManeuvers[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
@@ -187,12 +136,42 @@ units[_]:="m"
 
 
 (* ::Input::Initialization:: *)
-Clear@plot
-plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun[t],Prepend[domain,t],Frame->True,GridLines->Automatic,FrameLabel->{"t, s",label},RotateLabel->False,LabelStyle->Directive[Bold],PlotStyle->Thick]
+ClearAll@plot
+plot[{fun_,domain_,label_,converter_}]:=Plot[converter fun,Prepend[domain,t],Frame->True,GridLines->Automatic,FrameLabel->{"t, s",label},RotateLabel->False,LabelStyle->Directive[Bold],PlotStyle->Thick]
+plot[___]:=$Failed
 
-Clear@plots
-plots[manevrresult_?manevrQ]:=plot/@
-({#/.manevrresult,domain[manevrresult],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)
+ClearAll@plots
+plots[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]:=plot/@
+({#[t]/.arg,domain[arg],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)
+
+plots[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
+ClearAll@trajectoryPlot
+
+trajectoryPlot[funs_List,range_]:=ParametricPlot3D[funs,range,PlotRange->Full,AxesLabel->{"x","y","z"},PlotStyle->Thickness[0.0075]]
+
+trajectoryPlot[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]:=trajectoryPlot[(appendt@{x,y,z})/.arg,Prepend[domain@arg,t]]
+
+trajectoryPlot[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
+ClearAll@inequality
+inequality[domain_List]/;Length[domain]==2:=First@domain<=t<=Last@domain
+inequality[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
+ClearAll@join
+join[args:{InterpolatingFunction[___][___]..}]:=Piecewise[MapThread[List,{#&/@args,inequality/@(domain/@args)}]]
+
+join[args_?manevrQ (* \:0432 \:0434\:0430\:043d\:043d\:043e\:043c \:0441\:043b\:0443\:0447\:0430\:0435, \:044d\:0442\:043e \:043d\:0435 \:043c\:0430\:043d\:0435\:0432\:0440, \:0430 \:0441\:043f\:0438\:0441\:043e\:043a \:043e\:0434\:043d\:043e\:0438\:043c\:0435\:043d\:043d\:044b\:0445 \:0438\:043d\:0442\:0435\:0440\:043f\:043e\:043b\:0438\:0440\:0443\:044e\:0449\:0438\:0445 \:0444\:0443\:043d\:043a\:0446\:0438\:0439 \:043e\:0442 \:043d\:0435\:0441\:043a\:043e\:043b\:044c\:043a\:0438\:0445 \:043c\:0430\:043d\:0435\:0432\:0440\:043e\:0432*)]:=args[[1,1]]->join[args[[All,2]]]
+
+join[args_:{_?manevrQ..}]:=join/@Transpose[args]
+
+join[___]:=$Failed
 
 
 
