@@ -20,17 +20,16 @@
 
 
 (* ::Input::Initialization:: *)
-Clear[t,x,y,z,\[Theta],\[Psi],V]
+Get[NotebookDirectory[]<>"pk_ErrorChecking.m"]
 
 
 (* ::Input::Initialization:: *)
-Clear@equations
-equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_,t0_:0]:=With[
+Clear[t,x,y,z,\[Theta],\[Psi],V,\[Gamma],g]
 
-{g=9.81},
 
-{
-(* equations of motion *)
+(* ::Input::Initialization:: *)
+ClearAll[equations,iequations]
+iequations[gammafun_,nyfun_,nxfun_,g_]:={(* equations of motion *)
 nxfun-Sin[\[Theta][t]]==V'[t]/g,
 nyfun Cos[gammafun]-Cos[\[Theta][t]]==V[t]/g  \[Theta]'[t],
 nyfun Sin[gammafun]==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
@@ -38,15 +37,27 @@ nyfun Sin[gammafun]==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
 (* kinematic relationships, which may be considered as a part of Eqs of M. *)
 x'[t]==V[t]Cos[\[Theta][t]]Cos[\[Psi][t]],
 y'[t]==V[t] Sin[\[Theta][t]],
-z'[t]==-V[t] Sin[\[Psi][t]]Cos[\[Theta][t]],
+z'[t]==-V[t] Sin[\[Psi][t]]Cos[\[Theta][t]]};
 
+equations::usage="Helicopter equations of motion in overloads \n
+equations[]: traditional form\n
+equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]\n
+gammafun, nyfun, nxfun \[LongDash] numbers or functions like 0.058*t or Sin[\[Theta][t]]";
+
+equations[]:=TableForm[TraditionalForm/@iequations[\[Gamma],"\!\(\*SubscriptBox[\(n\), \(y\)]\)","\!\(\*SubscriptBox[\(n\), \(x\)]\)",g]/.{arg_[t]:>arg}]
+
+equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]:=With[
+
+{g=9.81},
+
+(* equations of motion and kinematic relationships, which may be considered as a part of Eqs of M.*)
+iequations[gammafun,nyfun,nxfun,g]~Join~{
 (* initial conditions *)
 x[0]==x0,y[0]==y0,z[0]==z0,
 \[Theta][0]==\[Theta]0,  \[Psi][0]==\[Psi]0,V[0]==V0
 }
 ]
-
-equations[___]:=$Failed
+ErrorChecking`setConsistencyChecks[equations,"Valid syntax:\n equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]\n or equations[]"];
 
 
 (* ::Input::Initialization:: *)
@@ -103,22 +114,33 @@ lastState[___]:=$Failed
 
 (* ::Input::Initialization:: *)
 ClearAll@maneuver
+maneuver::usage="
+Returns list of InterpolatingFunctions for x, y, z, \[Theta], \[Psi], V\n
+maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
+maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver
+";
 (*maneuver::msg1="1";
 maneuver::msg2="2";*)
 
 maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=(
 (*Message[maneuver::msg1];*)
-First@Quiet[NDSolve[
-equations[initialconditions,gammafun,nyfun,nxfun,t0]~Join~{WhenEvent[event,{"StopIntegration"}]},
+(*Print[equations[initialconditions,gammafun,nyfun,nxfun]];*)
+First@NDSolve[
+equations[initialconditions,gammafun,nyfun,nxfun]~Join~{WhenEvent[event,{"StopIntegration"}]},
 appendt@functionslist,
-{t,0,Infinity}
-],{NDSolve::ihist}])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]}
+{t,0,Infinity},
+EvaluationMonitor:>{
+Sow[nyfun Cos[gammafun]-Cos[\[Theta][t]],\[Theta]dot],
+Sow[N[gammafun/Degree],gam],
+Sow[N@nyfun,ny]
+}
+])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]} (* domain correction *) 
 
 maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=(
 (*Message[maneuver::msg2];*)
 maneuver[lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
 
-maneuver[___]:=$Failed
+ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:\n maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] \n or maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]"];
 
 
 (* ::Input::Initialization:: *)
