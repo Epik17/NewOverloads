@@ -132,7 +132,9 @@ appendt@functionslist,
 EvaluationMonitor:>{
 Sow[nyfun Cos[gammafun]-Cos[\[Theta][t]],\[Theta]dot],
 Sow[N[gammafun/Degree],gam],
-Sow[N@nyfun,ny]
+Sow[N@nyfun,ny],
+Sow[t,tt],
+Sow[-((9.81 nyfun Sin[gammafun])/(V [t]Cos[\[Theta][t]])),\[Psi]dot]
 }
 ])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]} (* domain correction *) 
 
@@ -194,6 +196,17 @@ join[args_?manevrQ (* \:0432 \:0434\:0430\:043d\:043d\:043e\:043c \:0441\:043b\:
 join[args_:{_?manevrQ..}]:=join/@Transpose[args]
 
 join[___]:=$Failed
+
+
+(* ::Input::Initialization:: *)
+ClearAll[idetails,details]
+SetAttributes[idetails,HoldFirst]
+SetAttributes[details,HoldFirst]
+
+idetails[man_,tags_]:=ReleaseHold[Flatten[(Reap[man;,tags])[[2]],1]]
+details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[TableForm[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]]
+
+ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
 
 
 
