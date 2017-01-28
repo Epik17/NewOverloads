@@ -71,7 +71,11 @@ initialConditionsQ[arg_]:=MatchQ[arg,{__?NumericQ}]&&Length[arg]==6
 
 
 (* ::Input::Initialization:: *)
-functionslist={x,y,z,\[Theta],\[Psi],V};
+ClearAll@functionslist
+functionslist:=Module[{},
+ClearAll[x,y,z,\[Theta],\[Psi],V];
+{x,y,z,\[Theta],\[Psi],V}
+];
 
 
 (* ::Input::Initialization:: *)
