@@ -50,6 +50,12 @@ parameters={"Type","Fomet","Gnorm","TraspUZemli","nyMin","nyMax","ctgTotH","ctgN
 
 
 (* ::Input::Initialization:: *)
+ClearAll@correctFormattedImportedRowQ
+correctFormattedImportedRowQ[arg_List]:=StringQ[First@arg]&&AllTrue[Rest@arg,NumericQ]&&Length[arg]==15
+correctFormattedImportedRowQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
 ClearAll@formattedImportedQ
 formattedImportedQ[arg_?correctlyimportedQ]:=With[{firstrow=arg[[1]]},StringQ[First@firstrow]&&AllTrue[Rest@firstrow,NumericQ]]
 formattedImportedQ[___]:=False
@@ -57,7 +63,7 @@ formattedImportedQ[___]:=False
 
 (* ::Input::Initialization:: *)
 ClearAll@formattedImportedQ
-formattedImportedQ[arg_?correctlyimportedQ]:=AllTrue[arg,StringQ[First@#]&&AllTrue[Rest@#,NumericQ]&]
+formattedImportedQ[arg_?correctlyimportedQ]:=With[{firstrow=arg[[1]]},correctFormattedImportedRowQ[firstrow]]
 formattedImportedQ[___]:=False
 
 
@@ -96,4 +102,7 @@ fromDatabase[database_?databaseQ,type_String]:=(Message[fromDatabase::typenotfou
 ErrorChecking`setConsistencyChecks[fromDatabase,"Correct input: fromDatabase[database_?databaseQ,type_String]"];
 
 
-
+(* ::Input::Initialization:: *)
+Clear@helicopterQ
+helicopterQ[arg_Association]:=Keys[arg]==parameters&&correctFormattedImportedRowQ[Values@arg]
+helicopterQ[___]:=False
