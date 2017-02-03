@@ -23,4 +23,73 @@
 mps=3.6;
 
 
+(* ::Input::Initialization:: *)
+ClearAll@correctVQ
+correctVQ::verror="Velocity of `1` has to belong to the interval from 0 to `2` kph. Input velocity is `3` kph";
+correctVQ[helicopter_?helicopterQ,V_?NumericQ]:=If[0<=V*mps<=helicopter["Vmax"],True,(Message[correctVQ::verror,helicopter["Type"],helicopter["Vmax"],Round[V*mps,0.001]];False)]
+correctVQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
+ClearAll@correctTQ
+correctTQ::tError="Temperature interval is from -40 to 40\[Degree]C. Input temperature is `1`\[Degree]C";
+correctTQ[temp_?NumericQ]:=If[-40<=temp<=40,True,(Message[correctTQ::tError,Round[temp,0.001]];False)]
+correctTQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
+ClearAll@greaterThanZero
+greaterThanZero::valueerror="`1` have to be greater or equal to zero. Your unput: `2`";
+greaterThanZero::typeerror="`1` have to be a number. Your unput: `2`";
+greaterThanZero[arg_?NumericQ,name_]:=If[arg>=0,True,(Message[greaterThanZero::valueerror,name,arg];False)]
+greaterThanZero[arg_,name_]:=(Message[greaterThanZero::typeerror,name,arg];False)
+greaterThanZero[arg___]:=False
+
+
+(* ::Input::Initialization:: *)
+ClearAll@diapason
+diapason::verror="Velocity of `1` has to belong to the the interval from 0 to `2` kph. Input velocity is `3` kph";
+diapason[helicopter_?helicopterQ,V_]:=Module[{allgood},
+If[Not@correctVQ[helicopter,V],allgood=False,allgood=True];
+If[allgood==True,
+helicopter["Hdyn"]-(V*mps-helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2*(helicopter["Hdyn"]-helicopter["Hst"])/(helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2,$Failed]]
+
+diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_]:=Module[
+{normT=15,groundT,T,dH,H1,allgood},
+
+allgood=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp]},#==True&];
+
+If[allgood,
+
+H1=diapason[helicopter,0];
+groundT=helicopter["TraspUZemli"];
+T=(groundT-H1*helicopter["ctgTotH"])*(G/helicopter["Gnorm"]);If[temp>normT, groundT=groundT-helicopter["TemperCoeff"]*(temp-normT)];
+dH=(groundT-T)/helicopter["ctgTotH"]-H1;
+diapason[helicopter,V]+dH,$Failed]
+]
+
+ErrorChecking`setConsistencyChecks[diapason,"Your input have to be diapason[helicopter_?helicopterQ,V_?NumericQ] or diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_?NumericQ]"];
+
+
+(* ::Input::Initialization:: *)
+ClearAll@nyAvaliable
+nyAvaliable::denominatorerror="Can't calculate avaliable ny";
+nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]:=Module[
+
+{allgood,denominator},
+
+allgood=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],greaterThanZero[H,"H"],correctTQ[temp]},#==True&];
+
+If[allgood,
+
+denominator=helicopter["TraspUZemli"]/helicopter["ctgTotH"]-diapason[helicopter,G,temp,V];
+
+If[Abs[denominator]>0.00001,(helicopter["TraspUZemli"]/helicopter["ctgTotH"]-H)/denominator,(Message[nyAvaliable::denominatorerror];$Failed)],
+
+$Failed]
+]
+
+ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input have to be nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]"];
+
+
 

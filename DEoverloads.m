@@ -44,7 +44,9 @@ equations[]: traditional form\n
 equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]\n
 gammafun, nyfun, nxfun \[LongDash] numbers or functions like 0.058*t or Sin[\[Theta][t]]";
 
-equations[]:=TableForm[TraditionalForm/@iequations[\[Gamma],"\!\(\*SubscriptBox[\(n\), \(y\)]\)","\!\(\*SubscriptBox[\(n\), \(x\)]\)",g]/.{arg_[t]:>arg}]
+equations["TraditionalForm"]:=TableForm[TraditionalForm/@iequations[\[Gamma],"\!\(\*SubscriptBox[\(n\), \(y\)]\)","\!\(\*SubscriptBox[\(n\), \(x\)]\)",g]/.{arg_[t]:>arg}]
+
+equations[]:=iequations[\[Gamma],nya,nxa,g]/.{arg_[t]:>arg}
 
 equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]:=With[
 
