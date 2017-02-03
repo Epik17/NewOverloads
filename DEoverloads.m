@@ -48,6 +48,8 @@ equations["TraditionalForm"]:=TableForm[TraditionalForm/@iequations[\[Gamma],"\!
 
 equations[]:=iequations[\[Gamma],nya,nxa,g]/.{arg_[t]:>arg}
 
+equations["t"]:=iequations[\[Gamma],nya,nxa,g]
+
 equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]:=With[
 
 {g=9.81},
