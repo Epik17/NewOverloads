@@ -110,7 +110,7 @@ ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input have to be nyAvaliabl
 
 (* ::Input::Initialization:: *)
 ClearAll@nxAvaliable
-nxAvaliable::Verror="Velocity has to be great than zero. Encountered value: `1` mps";
+nxAvaliable::Verror="Velocity has to be greater than zero. Encountered value: `1` mps";
 nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]:=Module[{tempV},
 If[V>0,
 If[allGood[helicopter,V,G,temp,hManevraCurrent,ny],
