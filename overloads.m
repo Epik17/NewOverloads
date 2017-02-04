@@ -65,17 +65,14 @@ allGood[___]:=False
 ClearAll@diapason
 diapason::verror="Velocity of `1` has to belong to the the interval from 0 to `2` kph. Input velocity is `3` kph";
 diapason[helicopter_?helicopterQ,V_]:=Module[{allgood},
-(*If[Not@correctVQ[helicopter,V],allgood=False,allgood=True];*)
 
-If[(*allgood\[Equal]True*)allGood[helicopter,V],
+If[allGood[helicopter,V],
 helicopter["Hdyn"]-(V*mps-helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2*(helicopter["Hdyn"]-helicopter["Hst"])/(helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2,$Failed]]
 
 diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_]:=Module[
 {normT=15,groundT,T,dH,H1,allgood},
 
-(*allgood=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp]},#\[Equal]True&];*)
-
-If[allGood[helicopter,V,G,temp](*allgood*),
+If[allGood[helicopter,V,G,temp],
 
 H1=diapason[helicopter,0];
 groundT=helicopter["TraspUZemli"];
@@ -93,8 +90,6 @@ nyAvaliable::denominatorerror="Can't calculate avaliable ny";
 nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]:=Module[
 
 {allgood,denominator},
-
-(*allgood=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],greaterThanZero[H,"H"],correctTQ[temp]},#==True&];*)
 
 If[allGood[helicopter,V,G,temp,H],
 
