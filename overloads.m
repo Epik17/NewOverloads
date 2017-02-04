@@ -109,13 +109,19 @@ ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input have to be nyAvaliabl
 
 
 (* ::Input::Initialization:: *)
+ClearAll@airDensity
+airDensity[H_]:=If[greaterThanZero[H,"H"],0.125*(20-H/1000)/(20+H/1000)]
+ErrorChecking`setConsistencyChecks[airDensity,"Your input have to be airDensity[H_]"];
+
+
+(* ::Input::Initialization:: *)
 ClearAll@nxAvaliable
 nxAvaliable::Verror="Velocity has to be greater than zero. Encountered value: `1` mps";
-nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]:=Module[{tempV},
+nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]:=Module[{tempV,Cx=0.0115},
 If[V>0,
 If[allGood[helicopter,V,G,temp,hManevraCurrent,ny],
 tempV:=3.6*V;
-(540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV,$Failed],(Message[nxAvaliable::Verror,V];$Failed)]]
+(540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV-Cx*helicopter["Fomet"]*airDensity[hManevraCurrent]*V^2/2/G,$Failed],(Message[nxAvaliable::Verror,V];$Failed)]]
 ErrorChecking`setConsistencyChecks[nxAvaliable,"Your input have to be nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]"];
 
 
