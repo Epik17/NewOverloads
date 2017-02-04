@@ -47,19 +47,35 @@ greaterThanZero[arg___]:=False
 
 
 (* ::Input::Initialization:: *)
+ClearAll@allGood
+allGood[helicopter_?helicopterQ,V_]:=correctVQ[helicopter,V]
+
+allGood[helicopter_?helicopterQ,V_,G_,temp_]:=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp]},#==True&]
+
+allGood[helicopter_?helicopterQ,V_,G_,temp_,H_]:=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp],greaterThanZero[H,"H"]},#==True&]
+
+allGood::nyerror="For `1` in the given conditions ny cannot be greater than `2`. Inpit value is `3`";
+
+allGood[helicopter_?helicopterQ,V_,G_,temp_,H_,ny_]:=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp],greaterThanZero[H,"H"],If[ny<=nyAvaliable[helicopter,G,temp,H,V],True,(Message[allGood::nyerror,helicopter["Type"],Round[nyAvaliable[helicopter,G,temp,H,V],0.001],ny];False)]},#==True&]
+
+allGood[___]:=False
+
+
+(* ::Input::Initialization:: *)
 ClearAll@diapason
 diapason::verror="Velocity of `1` has to belong to the the interval from 0 to `2` kph. Input velocity is `3` kph";
 diapason[helicopter_?helicopterQ,V_]:=Module[{allgood},
-If[Not@correctVQ[helicopter,V],allgood=False,allgood=True];
-If[allgood==True,
+(*If[Not@correctVQ[helicopter,V],allgood=False,allgood=True];*)
+
+If[(*allgood\[Equal]True*)allGood[helicopter,V],
 helicopter["Hdyn"]-(V*mps-helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2*(helicopter["Hdyn"]-helicopter["Hst"])/(helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2,$Failed]]
 
 diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_]:=Module[
 {normT=15,groundT,T,dH,H1,allgood},
 
-allgood=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp]},#==True&];
+(*allgood=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp]},#\[Equal]True&];*)
 
-If[allgood,
+If[allGood[helicopter,V,G,temp](*allgood*),
 
 H1=diapason[helicopter,0];
 groundT=helicopter["TraspUZemli"];
@@ -78,9 +94,9 @@ nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]:=Module[
 
 {allgood,denominator},
 
-allgood=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],greaterThanZero[H,"H"],correctTQ[temp]},#==True&];
+(*allgood=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],greaterThanZero[H,"H"],correctTQ[temp]},#==True&];*)
 
-If[allgood,
+If[allGood[helicopter,V,G,temp,H],
 
 denominator=helicopter["TraspUZemli"]/helicopter["ctgTotH"]-diapason[helicopter,G,temp,V];
 
@@ -90,6 +106,17 @@ $Failed]
 ]
 
 ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input have to be nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]"];
+
+
+(* ::Input::Initialization:: *)
+ClearAll@nxAvaliable
+nxAvaliable::Verror="Velocity has to be great than zero. Encountered value: `1` mps";
+nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]:=Module[{tempV},
+If[V>0,
+If[allGood[helicopter,V,G,temp,hManevraCurrent,ny],
+tempV:=3.6*V;
+(540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV,$Failed],(Message[nx::Verror,V];$Failed)]]
+ErrorChecking`setConsistencyChecks[nxAvaliable,"Your input have to be nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]"];
 
 
 
