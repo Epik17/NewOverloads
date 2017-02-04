@@ -81,7 +81,7 @@ dH=(groundT-T)/helicopter["ctgTotH"]-H1;
 diapason[helicopter,V]+dH,$Failed]
 ]
 
-ErrorChecking`setConsistencyChecks[diapason,"Your input have to be diapason[helicopter_?helicopterQ,V_?NumericQ] or diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_?NumericQ]"];
+ErrorChecking`setConsistencyChecks[diapason,"Your input has to be diapason[helicopter_?helicopterQ,V_?NumericQ] or diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_?NumericQ]"];
 
 
 (* ::Input::Initialization:: *)
@@ -100,13 +100,13 @@ If[Abs[denominator]>0.00001,(helicopter["TraspUZemli"]/helicopter["ctgTotH"]-H)/
 $Failed]
 ]
 
-ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input have to be nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]"];
+ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input has to be nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]"];
 
 
 (* ::Input::Initialization:: *)
 ClearAll@airDensity
 airDensity[H_]:=If[greaterThanZero[H,"H"],0.125*(20-H/1000)/(20+H/1000)]
-ErrorChecking`setConsistencyChecks[airDensity,"Your input have to be airDensity[H_]"];
+ErrorChecking`setConsistencyChecks[airDensity,"Your input has to be airDensity[H_]"];
 
 
 (* ::Input::Initialization:: *)
@@ -117,7 +117,7 @@ If[V>0,
 If[allGood[helicopter,V,G,temp,hManevraCurrent,ny],
 tempV:=3.6*V;
 (540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV-Cx*helicopter["Fomet"]*airDensity[hManevraCurrent]*V^2/2/G,$Failed],(Message[nxAvaliable::Verror,V];$Failed)]]
-ErrorChecking`setConsistencyChecks[nxAvaliable,"Your input have to be nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]"];
+ErrorChecking`setConsistencyChecks[nxAvaliable,"Your input has to be nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]"];
 
 
 
