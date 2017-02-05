@@ -21,10 +21,11 @@
 
 (* ::Input::Initialization:: *)
 Get[NotebookDirectory[]<>"pk_ErrorChecking.m"]
+Get[NotebookDirectory[]<>"plots.m"]
 
 
 (* ::Input::Initialization:: *)
-Clear[t,x,y,z,\[Theta],\[Psi],V,\[Gamma],g]
+Clear[t,x,y,z,\[Theta],\[Psi],V,\[Gamma],nya,nxa,g]
 
 
 (* ::Input::Initialization:: *)
@@ -187,7 +188,8 @@ domainQ[___]:=False
 
 (* ::Input::Initialization:: *)
 ClearAll@plot
-plot[{fun_,domain_?domainQ,label_String,converter_?NumericQ}]:=Plot[converter fun,Prepend[domain,t],Frame->True,GridLines->Automatic,PlotLabel->label,RotateLabel->False,LabelStyle->Directive[Bold],PlotStyle->Thick,PlotRange->Full]
+plot[{fun_,domain_?domainQ,label_String,converter_?NumericQ}]:=myPlot[converter fun,Prepend[domain,t],PlotLabel->label,LabelStyle->{Directive[Black,Bold],10}](*Plot[converter fun,Prepend[domain,t],Frame\[Rule]True,GridLines\[Rule]Automatic,PlotLabel\[Rule]label,RotateLabel\[Rule]False,LabelStyle\[Rule]Directive[Bold],PlotStyle\[Rule]Thick,PlotRange\[Rule]Full]*)
+
 ErrorChecking`setConsistencyChecks[plot,"Valid syntax:\n plot[{fun_Interpolating,domain_,label_,converter_}]"];
 
 ClearAll@plots
