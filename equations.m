@@ -35,6 +35,11 @@ bracketedEquations/:MakeBoxes[bracketedEquations[eqs_,Alignment->True],Tradition
 
 
 (* ::Input::Initialization:: *)
+ClearAll@formQ
+formQ[arg_]:=MatchQ[arg,"Classic"|"Custom"]
+
+
+(* ::Input::Initialization:: *)
 ClearAll[equations,iequations]
 iiequations[gammafun_,nyfun_,nxfun_,g_]:={(* equations of motion *)
 nxfun-Sin[\[Theta][t]]==V'[t]/g,
@@ -49,13 +54,13 @@ z'[t]==-V[t] Sin[\[Psi][t]]Cos[\[Theta][t]]};
 iequations["Classic",gammafun_,nyfun_,nxfun_,g_]:=iiequations[gammafun,nyfun,nxfun,g]
 iequations["Custom",gammafun_,nyfun_,nxfun_,g_]:=iiequations[gammafun,nyfun Cos[\[Theta][t]]-nxfun Sin[\[Theta][t]],nyfun Sin[\[Theta][t]]+nxfun Cos[\[Theta][t]],g]
 
-equations[form_,"TraditionalForm"]:=TraditionalForm[bracketedEquations[iequations[form,\[Gamma],"\!\(\*SubscriptBox[\(n\), \(y\)]\)","\!\(\*SubscriptBox[\(n\), \(x\)]\)",g]/.{arg_[t]:>arg},Alignment->True]](*TableForm[TraditionalForm/@iequations[form,\[Gamma],"Subscript[n, y]","Subscript[n, x]",g]/.{arg_[t]\[RuleDelayed]arg}]*)
+equations[form_?formQ,"TraditionalForm"]:=TraditionalForm[bracketedEquations[iequations[form,\[Gamma],"\!\(\*SubscriptBox[\(n\), \(y\)]\)","\!\(\*SubscriptBox[\(n\), \(x\)]\)",g]/.{arg_[t]:>arg},Alignment->True]](*TableForm[TraditionalForm/@iequations[form,\[Gamma],"Subscript[n, y]","Subscript[n, x]",g]/.{arg_[t]\[RuleDelayed]arg}]*)
 
-equations[form_]:=iequations[form,\[Gamma],nya,nxa,g]/.{arg_[t]:>arg}
+equations[form_?formQ]:=iequations[form,\[Gamma],nya,nxa,g]/.{arg_[t]:>arg}
 
-equations[form_,"t"]:=iequations[form,\[Gamma],nya,nxa,g]
+equations[form_?formQ,"t"]:=iequations[form,\[Gamma],nya,nxa,g]
 
-equations[form_,initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]:=With[
+equations[form_?formQ,initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]:=With[
 
 {g=9.81},
 

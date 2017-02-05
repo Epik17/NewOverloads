@@ -110,25 +110,25 @@ Returns list of InterpolatingFunctions for x, y, z, \[Theta], \[Psi], V\n
 maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
 maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
 
-maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=With[
+maneuver[form_?formQ,initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=With[
 {gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->9.81}},
 (First@NDSolve[
-equations["Classic",initialconditions,gammafun,nyfun,nxfun]~Join~{WhenEvent[event,{"StopIntegration"}]},
+equations[form,initialconditions,gammafun,nyfun,nxfun]~Join~{WhenEvent[event,{"StopIntegration"}]},
 appendt@functionslist,
 {t,0,Infinity},
 EvaluationMonitor:>{
-Sow[solvefor[equations["Classic","t"],Derivative[1][\[Theta]][t]]/.gammafunnyfunnxfunRule,\[Theta]dot],
+Sow[solvefor[equations[form,"t"],Derivative[1][\[Theta]][t]]/.gammafunnyfunnxfunRule,\[Theta]dot],
 Sow[N[gammafun/Degree],gam],
 Sow[N@nyfun,ny],
 Sow[N@nxfun,nx],
 Sow[3.6V[t],VV],
 Sow[t,tt],
-Sow[solvefor[equations["Classic","t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot]
+Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot]
 }
 ])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]}] (* domain correction *) 
 
-maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=(
-maneuver[lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
+maneuver[form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=(
+maneuver[form,lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
 
 ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:\n maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] \n or maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]"]
 
