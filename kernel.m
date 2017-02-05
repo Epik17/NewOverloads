@@ -209,4 +209,14 @@ details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nx,VV}]]:=W
 ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
 
 
+(* ::Input::Initialization:: *)
+ClearAll[idetails,details]
+SetAttributes[idetails,HoldFirst]
+SetAttributes[details,HoldFirst]
+
+idetails[man_,tags_]:=ReleaseHold[Flatten[(Reap[man;,tags])[[2]],1]]
+details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nx,VV}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]
+ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
+
+
 
