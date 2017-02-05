@@ -98,7 +98,7 @@ types[database_?databaseQ]:=#["Type"]&/@database
 ClearAll@fromDatabase
 fromDatabase::typenotfound="Helicopter type `1` is not found in the database";
 fromDatabase[database_?databaseQ,type_String]/;MemberQ[types@database,type]:=With[{selected=Select[database,#["Type"]==type&]},If[Length@selected==1,First@selected,selected]]
-fromDatabase[database_?databaseQ,type_String]:=(Message[fromDatabase::typenotfound,type])
+fromDatabase[database_?databaseQ,type_String]:=(Message[fromDatabase::typenotfound,type];$Failed)
 ErrorChecking`setConsistencyChecks[fromDatabase,"Correct input: fromDatabase[database_?databaseQ,type_String]"];
 
 
