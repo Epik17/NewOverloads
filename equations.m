@@ -78,4 +78,9 @@ equations[form_,initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun
   gammafun, nyfun, nxfun \[LongDash] numbers or functions like 0, 0.058*t or Sin[\[Theta][t]]"; 
 
 
+(* ::Input::Initialization:: *)
+ClearAll@solvefor
+solvefor[eqs_,fun_]:=solvefor[eqs,fun]=With[{eqNorule={V'[t]->1,Derivative[1][\[Theta]][t]->2,\[Psi]'[t]->3}},fun/.(Solve[eqs[[fun/.eqNorule]],fun][[1]])]
+
+
 
