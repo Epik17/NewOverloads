@@ -20,49 +20,13 @@
 
 
 (* ::Input::Initialization:: *)
+Get[NotebookDirectory[]<>"equations.m"]
 Get[NotebookDirectory[]<>"pk_ErrorChecking.m"]
 Get[NotebookDirectory[]<>"plots.m"]
 
 
 (* ::Input::Initialization:: *)
 Clear[t,x,y,z,\[Theta],\[Psi],V,\[Gamma],nya,nxa,g]
-
-
-(* ::Input::Initialization:: *)
-ClearAll[equations,iequations]
-iequations[gammafun_,nyfun_,nxfun_,g_]:={(* equations of motion *)
-nxfun-Sin[\[Theta][t]]==V'[t]/g,
-nyfun Cos[gammafun]-Cos[\[Theta][t]]==V[t]/g  \[Theta]'[t],
-nyfun Sin[gammafun]==V [t]Cos[\[Theta][t]]/g (-\[Psi]'[t]),
-
-(* kinematic relationships, which may be considered as a part of Eqs of M. *)
-x'[t]==V[t]Cos[\[Theta][t]]Cos[\[Psi][t]],
-y'[t]==V[t] Sin[\[Theta][t]],
-z'[t]==-V[t] Sin[\[Psi][t]]Cos[\[Theta][t]]};
-
-equations::usage="Helicopter equations of motion in overloads \n
-equations[]: traditional form\n
-equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]\n
-gammafun, nyfun, nxfun \[LongDash] numbers or functions like 0.058*t or Sin[\[Theta][t]]";
-
-equations["TraditionalForm"]:=TableForm[TraditionalForm/@iequations[\[Gamma],"\!\(\*SubscriptBox[\(n\), \(y\)]\)","\!\(\*SubscriptBox[\(n\), \(x\)]\)",g]/.{arg_[t]:>arg}]
-
-equations[]:=iequations[\[Gamma],nya,nxa,g]/.{arg_[t]:>arg}
-
-equations["t"]:=iequations[\[Gamma],nya,nxa,g]
-
-equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]:=With[
-
-{g=9.81},
-
-(* equations of motion and kinematic relationships, which may be considered as a part of Eqs of M.*)
-iequations[gammafun,nyfun,nxfun,g]~Join~{
-(* initial conditions *)
-x[0]==x0,y[0]==y0,z[0]==z0,
-\[Theta][0]==\[Theta]0,  \[Psi][0]==\[Psi]0,V[0]==V0
-}
-]
-ErrorChecking`setConsistencyChecks[equations,"Valid syntax:\n equations[initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]\n or equations[]"];
 
 
 (* ::Input::Initialization:: *)
@@ -146,7 +110,7 @@ maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0
 maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
 maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=(
 First@NDSolve[
-equations[initialconditions,gammafun,nyfun,nxfun]~Join~{WhenEvent[event,{"StopIntegration"}]},
+equations["Classic",initialconditions,gammafun,nyfun,nxfun]~Join~{WhenEvent[event,{"StopIntegration"}]},
 appendt@functionslist,
 {t,0,Infinity},
 EvaluationMonitor:>{
