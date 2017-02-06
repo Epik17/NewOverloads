@@ -100,7 +100,7 @@ lastState[manevrresult_?manevrQ]:=
 ((appendt@functionslist)/.manevrresult)/.{t->tFinal[manevrresult]}
 
 ErrorChecking`setConsistencyChecks[{tStart,tFinal,lastState},"Valid syntax:
-tStart[manevrresult_?manevrQ]"];
+fun[manevrresult_?manevrQ]"];
 
 
 (* ::Input::Initialization:: *)
