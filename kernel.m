@@ -118,8 +118,9 @@ maneuver[helicopter_?helicopterQ,form_?formQ,initialconditions_?initialCondition
 (First@NDSolve[
 equations[form,initialconditions,gammafun,nyfun,nxfun]
 ~Join~{WhenEvent[{event},{"StopIntegration"}]}
-~Join~{WhenEvent[{t>0.01&&nxfun>nxAvaliable[helicopter,nyfun,3000,15,y[t],V[t]]},{Print["nx limit reached!"];"StopIntegration"}]}
-~Join~{WhenEvent[{t>0.01&&nyfun>nyAvaliable[helicopter,3000,15,y[t],V[t]]},{Print["ny limit reached!"];"StopIntegration"}]},
+~Join~{WhenEvent[{AllTrue[{t>0.0,V[t]<0},TrueQ]},{Print["V<0!"];"StopIntegration"}]}
+~Join~{WhenEvent[{AllTrue[{t>0.01&&nyfun>nyAvaliable[helicopter,3000,15,y[t],V[t]]},TrueQ]},{Print["ny limit reached!"];"StopIntegration"}]}
+~Join~{WhenEvent[{AllTrue[{t>0.0,nxfun>nxAvaliable[helicopter,nyfun,3000,15,y[t],V[t]]},TrueQ]},{Print["nx limit reached!"];"StopIntegration"}]},
 appendt@functionslist,
 {t,0,Infinity},
 EvaluationMonitor:>{
