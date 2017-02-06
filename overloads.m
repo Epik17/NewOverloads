@@ -64,19 +64,19 @@ ClearAll@diapason
 diapason::verror="Velocity of `1` has to belong to the the interval from 0 to `2` kph. Input velocity is `3` kph";
 diapason[helicopter_?helicopterQ,V_]:=Module[{allgood},
 
-If[allGood[helicopter,V],
-helicopter["Hdyn"]-(V*mps-helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2*(helicopter["Hdyn"]-helicopter["Hst"])/(helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2,$Failed]]
+(*If[allGood[helicopter,V],*)
+helicopter["Hdyn"]-(V*mps-helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2*(helicopter["Hdyn"]-helicopter["Hst"])/(helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2(*,$Failed]*)]
 
 diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_]:=Module[
 {normT=15,groundT,T,dH,H1,allgood},
 
-If[allGood[helicopter,V,G,temp],
+(*If[allGood[helicopter,V,G,temp],*)
 
 H1=diapason[helicopter,0];
 groundT=helicopter["TraspUZemli"];
 T=(groundT-H1*helicopter["ctgTotH"])*(G/helicopter["Gnorm"]);If[temp>normT, groundT=groundT-helicopter["TemperCoeff"]*(temp-normT)];
 dH=(groundT-T)/helicopter["ctgTotH"]-H1;
-diapason[helicopter,V]+dH,$Failed]
+diapason[helicopter,V]+dH(*,$Failed]*)
 ]
 
 ErrorChecking`setConsistencyChecks[diapason,"Your input has to be diapason[helicopter_?helicopterQ,V_?NumericQ] or diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_?NumericQ]"];
@@ -89,13 +89,13 @@ nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]:=Module[
 
 {allgood,denominator},
 
-If[allGood[helicopter,V,G,temp,H],
+(*If[allGood[helicopter,V,G,temp,H],*)
 
 denominator=helicopter["TraspUZemli"]/helicopter["ctgTotH"]-diapason[helicopter,G,temp,V];
 
-If[Abs[denominator]>0.00001,(helicopter["TraspUZemli"]/helicopter["ctgTotH"]-H)/denominator,(Message[nyAvaliable::denominatorerror];$Failed)],
+(*If[Abs[denominator]>0.00001,*)(helicopter["TraspUZemli"]/helicopter["ctgTotH"]-H)/denominator(*,(Message[nyAvaliable::denominatorerror];$Failed)]*)(*,
 
-$Failed]
+Print["FUCK"];$Failed]*)
 ]
 
 ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input has to be nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]"];
@@ -111,10 +111,10 @@ ErrorChecking`setConsistencyChecks[airDensity,"Your input has to be airDensity[H
 ClearAll@nxAvaliable
 nxAvaliable::Verror="Velocity has to be greater than zero. Encountered value: `1` mps";
 nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]:=Module[{tempV,Cx=0.0115},
-If[V>0,
-If[allGood[helicopter,V,G,temp,hManevraCurrent,ny],
+(*If[V>0,
+If[allGood[helicopter,V,G,temp,hManevraCurrent,ny],*)
 tempV:=3.6*V;
-(540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV-Cx*helicopter["Fomet"]*airDensity[hManevraCurrent]*V^2/2/G,$Failed],(Message[nxAvaliable::Verror,V];$Failed)]]
+(540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV-Cx*helicopter["Fomet"]*airDensity[hManevraCurrent]*V^2/2/G(*,$Failed],(Message[nxAvaliable::Verror,V];$Failed)]*)]
 ErrorChecking`setConsistencyChecks[nxAvaliable,"Your input has to be nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]"];
 
 
