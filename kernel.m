@@ -23,6 +23,7 @@
 Get[NotebookDirectory[]<>"equations.m"]
 Get[NotebookDirectory[]<>"pk_ErrorChecking.m"]
 Get[NotebookDirectory[]<>"plots.m"]
+Get[NotebookDirectory[]<>"helicopters.m"]
 
 
 (* ::Input::Initialization:: *)
@@ -110,7 +111,7 @@ Returns list of InterpolatingFunctions for x, y, z, \[Theta], \[Psi], V\n
 maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
 maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
 
-maneuver[form_?formQ,initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=With[
+maneuver[helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=With[
 {gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->9.81}},
 (First@NDSolve[
 equations[form,initialconditions,gammafun,nyfun,nxfun]~Join~{WhenEvent[event,{"StopIntegration"}]},
@@ -127,8 +128,8 @@ Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRu
 }
 ])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]}] (* domain correction *) 
 
-maneuver[form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=(
-maneuver[form,lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
+maneuver[helicopter_?helicopterQ,form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=(
+maneuver[helicopter,form,lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
 
 ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:\n maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] \n or maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]"]
 
@@ -196,17 +197,6 @@ join[args_?manevrQ (* \:0432 \:0434\:0430\:043d\:043d\:043e\:043c \:0441\:043b\:
 join[args_:{_?manevrQ..}]:=join/@Transpose[args]
 
 join[___]:=$Failed
-
-
-(* ::Input::Initialization:: *)
-ClearAll[idetails,details]
-SetAttributes[idetails,HoldFirst]
-SetAttributes[details,HoldFirst]
-
-idetails[man_,tags_]:=ReleaseHold[Flatten[(Reap[man;,tags])[[2]],1]]
-details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nx,VV}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[TableForm[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]]
-
-ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
 
 
 (* ::Input::Initialization:: *)
