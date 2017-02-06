@@ -40,9 +40,7 @@ correctTQ[___]:=False
 (* ::Input::Initialization:: *)
 ClearAll@greaterThanZero
 greaterThanZero::valueerror="`1` have to be greater or equal to zero. Your unput: `2`";
-greaterThanZero::typeerror="`1` have to be a number. Your unput: `2`";
-greaterThanZero[arg_?NumericQ,name_]:=If[arg>=0,True,(Message[greaterThanZero::valueerror,name,arg];False)]
-greaterThanZero[arg_,name_]:=(Message[greaterThanZero::typeerror,name,arg];False)
+greaterThanZero[arg_,name_]:=If[arg>=0,True,(Message[greaterThanZero::valueerror,name,arg];False)]
 greaterThanZero[arg___]:=False
 
 

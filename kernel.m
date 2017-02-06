@@ -24,6 +24,7 @@ Get[NotebookDirectory[]<>"equations.m"]
 Get[NotebookDirectory[]<>"pk_ErrorChecking.m"]
 Get[NotebookDirectory[]<>"plots.m"]
 Get[NotebookDirectory[]<>"helicopters.m"]
+Get[NotebookDirectory[]<>"overloads.m"]
 
 
 (* ::Input::Initialization:: *)
@@ -111,17 +112,23 @@ Returns list of InterpolatingFunctions for x, y, z, \[Theta], \[Psi], V\n
 maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
 maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
 
-maneuver[helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=With[
-{gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->9.81}},
+maneuver[helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=Module[
+{gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->9.81},allgood},
+
 (First@NDSolve[
-equations[form,initialconditions,gammafun,nyfun,nxfun]~Join~{WhenEvent[event,{"StopIntegration"}]},
+equations[form,initialconditions,gammafun,nyfun,nxfun]
+~Join~{WhenEvent[{event},{"StopIntegration"}]}
+~Join~{WhenEvent[{t>0.01&&nxfun>nxAvaliable[helicopter,nyfun,3000,15,y[t],V[t]]},{Print["nx limit reached!"];"StopIntegration"}]}
+~Join~{WhenEvent[{t>0.01&&nyfun>nyAvaliable[helicopter,3000,15,y[t],V[t]]},{Print["ny limit reached!"];"StopIntegration"}]},
 appendt@functionslist,
 {t,0,Infinity},
 EvaluationMonitor:>{
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Theta]][t]]/.gammafunnyfunnxfunRule,\[Theta]dot],
 Sow[N[gammafun/Degree],gam],
 Sow[N@nyfun,ny],
+Sow[N@nyAvaliable[helicopter,3000,15,y[t],V[t]],nyavaliable],
 Sow[N@nxfun,nx],
+Sow[N@nxAvaliable[helicopter,nyfun,3000,15,y[t],V[t]],nxavaliable],
 Sow[3.6V[t],VV],
 Sow[t,tt],
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot]
@@ -205,7 +212,7 @@ SetAttributes[idetails,HoldFirst]
 SetAttributes[details,HoldFirst]
 
 idetails[man_,tags_]:=ReleaseHold[Flatten[(Reap[man;,tags])[[2]],1]]
-details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nx,VV}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]
+details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nyavaliable,nx,nxavaliable,VV}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]
 ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
 
 
