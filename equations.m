@@ -21,6 +21,7 @@
 
 (* ::Input::Initialization:: *)
 Get[NotebookDirectory[]<>"pk_ErrorChecking.m"]
+Get[NotebookDirectory[]<>"constants.m"]
 
 
 (* ::Input::Initialization:: *)
@@ -62,7 +63,7 @@ equations[form_?formQ,"t"]:=iequations[form,\[Gamma],nya,nxa,g]
 
 equations[form_?formQ,initialconditions:{x0_,y0_,z0_,\[Theta]0_,\[Psi]0_,V0_},gammafun_,nyfun_,nxfun_]:=With[
 
-{g=9.81},
+{g=globalg},
 
 (* equations of motion and kinematic relationships, which may be considered as a part of Eqs of M.*)
 iequations[form,gammafun,nyfun,nxfun,g]~Join~{

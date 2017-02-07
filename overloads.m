@@ -20,52 +20,12 @@
 
 
 (* ::Input::Initialization:: *)
-mps=3.6;
-
-
-(* ::Input::Initialization:: *)
-ClearAll@correctVQ
-correctVQ::verror="Velocity of `1` has to belong to the interval from 0 to `2` kph. Input velocity is `3` kph";
-correctVQ[helicopter_?helicopterQ,V_?NumericQ]:=If[0<=V*mps<=helicopter["Vmax"],True,(Message[correctVQ::verror,helicopter["Type"],helicopter["Vmax"],Round[V*mps,0.001]];False)]
-correctVQ[___]:=False
-
-
-(* ::Input::Initialization:: *)
-ClearAll@correctTQ
-correctTQ::tError="Temperature interval is from -40 to 40\[Degree]C. Input temperature is `1`\[Degree]C";
-correctTQ[temp_?NumericQ]:=If[-40<=temp<=40,True,(Message[correctTQ::tError,Round[temp,0.001]];False)]
-correctTQ[___]:=False
-
-
-(* ::Input::Initialization:: *)
-ClearAll@greaterThanZero
-greaterThanZero::valueerror="`1` have to be greater or equal to zero. Your unput: `2`";
-greaterThanZero[arg_,name_]:=If[arg>=0,True,(Message[greaterThanZero::valueerror,name,arg];False)]
-greaterThanZero[arg___]:=False
-
-
-(* ::Input::Initialization:: *)
-ClearAll@allGood
-allGood[helicopter_?helicopterQ,V_]:=correctVQ[helicopter,V]
-
-allGood[helicopter_?helicopterQ,V_,G_,temp_]:=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp]},#==True&]
-
-allGood[helicopter_?helicopterQ,V_,G_,temp_,H_]:=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp],greaterThanZero[H,"H"]},#==True&]
-
-allGood::nyerror="For `1` in the given conditions ny cannot be greater than `2`. Inpit value is `3`";
-
-allGood[helicopter_?helicopterQ,V_,G_,temp_,H_,ny_]:=AllTrue[{correctVQ[helicopter,V],greaterThanZero[G,"G"],correctTQ[temp],greaterThanZero[H,"H"],If[ny<=nyAvaliable[helicopter,G,temp,H,V],True,(Message[allGood::nyerror,helicopter["Type"],Round[nyAvaliable[helicopter,G,temp,H,V],0.001],ny];False)]},#==True&]
-
-allGood[___]:=False
-
-
-(* ::Input::Initialization:: *)
 ClearAll@diapason
 diapason::verror="Velocity of `1` has to belong to the the interval from 0 to `2` kph. Input velocity is `3` kph";
 diapason[helicopter_?helicopterQ,V_]:=Module[{allgood},
 
 (*If[allGood[helicopter,V],*)
-helicopter["Hdyn"]-(V*mps-helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2*(helicopter["Hdyn"]-helicopter["Hst"])/(helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2(*,$Failed]*)]
+helicopter["Hdyn"]-(V*globalmps-helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2*(helicopter["Hdyn"]-helicopter["Hst"])/(helicopter["ParabolaCoeff"]*helicopter["Vmax"])^2(*,$Failed]*)]
 
 diapason[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,V_]:=Module[
 {normT=15,groundT,T,dH,H1,allgood},
@@ -109,7 +69,7 @@ ErrorChecking`setConsistencyChecks[airDensity,"Your input has to be airDensity[H
 
 (* ::Input::Initialization:: *)
 ClearAll@nxAvaliable
-nxAvaliable::Verror="Velocity has to be greater than zero. Encountered value: `1` mps";
+nxAvaliable::Verror="Velocity has to be greater than zero. Encountered value: `1` globalmps";
 nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]:=Module[{tempV,Cx=0.0115},
 (*If[V>0,
 If[allGood[helicopter,V,G,temp,hManevraCurrent,ny],*)

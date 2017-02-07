@@ -25,6 +25,7 @@ Get[NotebookDirectory[]<>"pk_ErrorChecking.m"]
 Get[NotebookDirectory[]<>"plots.m"]
 Get[NotebookDirectory[]<>"helicopters.m"]
 Get[NotebookDirectory[]<>"overloads.m"]
+Get[NotebookDirectory[]<>"constants.m"]
 
 
 (* ::Input::Initialization:: *)
@@ -32,8 +33,8 @@ Clear[t,x,y,z,\[Theta],\[Psi],V,\[Gamma],nya,nxa,g]
 
 
 (* ::Input::Initialization:: *)
-Clear@manevrQ
-manevrQ[arg_]:=MatchQ[arg,{Rule[___,InterpolatingFunction[___][___]]..}]
+Clear@interpolFunListQ
+interpolFunListQ[arg_]:=MatchQ[arg,{Rule[___,InterpolatingFunction[___][___]]..}]
 
 
 (* ::Input::Initialization:: *)
@@ -50,32 +51,34 @@ ClearAll[x,y,z,\[Theta],\[Psi],V];
 
 
 (* ::Input::Initialization:: *)
-Clear@joinedmanevrQ
-joinedmanevrQ[arg_]:=MatchQ[arg,{Rule[___,_Piecewise]..}]
+Clear@joinedinterpolFunListQ
+joinedinterpolFunListQ[arg_]:=MatchQ[arg,{Rule[___,_Piecewise]..}]
 
 
 (* ::Input::Initialization:: *)
 ClearAll@domain
 domain[intfun_InterpolatingFunction]:=First@(intfun["Domain"])
 domain[intfun:InterpolatingFunction[___][targ___]]:=domain[Head@intfun]+t-targ
-domain[manevrresult_?manevrQ]:=domain[manevrresult[[1,2]]]
-domain[joinedmanevr_?joinedmanevrQ]:={joinedmanevr[[1,2,1,1,2,1]],joinedmanevr[[1,2,1,-1,2,3]]}
+domain[manevrresult_?interpolFunListQ]:=domain[manevrresult[[1,2]]]
+domain[interpolFunList_?joinedinterpolFunListQ]:={interpolFunList[[1,2,1,1,2,1]],interpolFunList[[1,2,1,-1,2,3]]}
+domain[manevr_?manevrQ]:=domain[manevr["Interpolating functions"]]
 ErrorChecking`setConsistencyChecks[domain,"Valid syntax:
 domain[intfun_InterpolatingFunction] or
 domain[intfun:InterpolatingFunction[___][targ___] or
-domain[manevrresult_?manevrQ] or
-domain[joinedmanevr_?joinedmanevrQ]"]
+domain[manevrresult_?interpolFunListQ] or
+domain[interpolFunList_?joinedinterpolFunListQ] or 
+domain[manevr_?manevrQ]"]
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tStart
-tStart[manevrresult_?manevrQ]:=First@domain@manevrresult
+tStart[manevrresult_?interpolFunListQ]:=First@domain@manevrresult
 (*ConsistencyChecked*)
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tFinal
-tFinal[manevrresult_?manevrQ]:=Last@domain@manevrresult
+tFinal[manevrresult_?interpolFunListQ]:=Last@domain@manevrresult
 (*ConsistencyChecked*)
 
 
@@ -97,49 +100,104 @@ ErrorChecking`setConsistencyChecks[appendt,"Functions symbols list must contain 
 
 (* ::Input::Initialization:: *)
 ClearAll@lastState
-lastState[manevrresult_?manevrQ]:=
+lastState[manevrresult_?interpolFunListQ]:=
 ((appendt@functionslist)/.manevrresult)/.{t->tFinal[manevrresult]}
 
 ErrorChecking`setConsistencyChecks[{tStart,tFinal,lastState},"Valid syntax:
-fun[manevrresult_?manevrQ]"];
+fun[manevrresult_?interpolFunListQ]"];
 
 
 (* ::Input::Initialization:: *)
-ClearAll@maneuver
+ClearAll@imaneuver
 
-maneuver::usage="
-Returns list of InterpolatingFunctions for x, y, z, \[Theta], \[Psi], V\n
-maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
-maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
-
-maneuver[helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=Module[
-{gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->9.81},allgood},
+imaneuver[helicopter_,form_,initialconditions_,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_]:=Module[
+{gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->globalg},allgood},
 
 (First@NDSolve[
 equations[form,initialconditions,gammafun,nyfun,nxfun]
-~Join~{WhenEvent[{event},{"StopIntegration"}]}
-~Join~{WhenEvent[{AllTrue[{t>0.0,V[t]<0},TrueQ]},{Print["V<0!"];"StopIntegration"}]}
-~Join~{WhenEvent[{AllTrue[{t>0.01&&nyfun>nyAvaliable[helicopter,3000,15,y[t],V[t]]},TrueQ]},{Print["ny limit reached!"];"StopIntegration"}]}
-~Join~{WhenEvent[{AllTrue[{t>0.0,nxfun>nxAvaliable[helicopter,nyfun,3000,15,y[t],V[t]]},TrueQ]},{Print["nx limit reached!"];"StopIntegration"}]},
+~Join~
+{WhenEvent[{event},{"StopIntegration"}]}
+~Join~
+{WhenEvent[{AllTrue[{t>0.01,V[t]*globalmps>helicopter["Vmax"]},TrueQ]},{Print["V>Vmax!"];"StopIntegration"}]}
+~Join~
+{WhenEvent[{AllTrue[{t>0.01,V[t]<0},TrueQ]},{Print["V<0!"];"StopIntegration"}]}
+~Join~
+{WhenEvent[{AllTrue[{t>0.01,nyfun>nyAvaliable[helicopter,G,temp,y[t],V[t]]},TrueQ]},{Print["ny limit reached!"];"StopIntegration"}]}
+~Join~
+{WhenEvent[{AllTrue[{t>0.01,nxfun>nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]]},TrueQ]},{Print["nx limit reached!"];"StopIntegration"}]},
+
 appendt@functionslist,
 {t,0,Infinity},
 EvaluationMonitor:>{
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Theta]][t]]/.gammafunnyfunnxfunRule,\[Theta]dot],
 Sow[N[gammafun/Degree],gam],
 Sow[N@nyfun,ny],
-Sow[N@nyAvaliable[helicopter,3000,15,y[t],V[t]],nyavaliable],
+Sow[N@nyAvaliable[helicopter,G,temp,y[t],V[t]],nyavaliable],
 Sow[N@nxfun,nx],
-Sow[N@nxAvaliable[helicopter,nyfun,3000,15,y[t],V[t]],nxavaliable],
+Sow[N@nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]],nxavaliable],
 Sow[3.6V[t],VV],
 Sow[t,tt],
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot]
 }
 ])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]}] (* domain correction *) 
 
-maneuver[helicopter_?helicopterQ,form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=(
-maneuver[helicopter,form,lastState@prevmaneuver,gammafun,nyfun,nxfun,event,tFinal@prevmaneuver])
+ErrorChecking`setConsistencyChecks[imaneuver]
 
-ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:\n maneuver[initialconditions_?initialConditionsQ,gammafun_,nyfun_,nxfun_,event_,t0_:0] \n or maneuver[prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]"]
+
+(* ::Input::Initialization:: *)
+ClearAll@manevrQ
+manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]
+manevrQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
+ClearAll@correctVQ
+correctVQ::verror="Velocity of `1` has to belong to the interval (0; `2`] kph. Input velocity is `3` kph";
+correctVQ[helicopter_?helicopterQ,V_?NumericQ]:=If[0<V&&V*globalmps<=helicopter["Vmax"],True,(Message[correctVQ::verror,helicopter["Type"],helicopter["Vmax"],Round[V*globalmps,0.001]];False)]
+correctVQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
+ClearAll@correctTQ
+correctTQ::tError="Temperature interval is from -40 to 40\[Degree]C. Input temperature is `1`\[Degree]C";
+correctTQ[temp_?NumericQ]:=If[-40<=temp<=40,True,(Message[correctTQ::tError,Round[temp,0.001]];False)]
+correctTQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
+ClearAll@correctGQ
+correctGQ::verror="Weight of `1` has to belong to the interval from `2` to `3` kg. Input weight is `4` kg";
+correctGQ[helicopter_?helicopterQ,G_?NumericQ]:=If[helicopter["Gmin"]<=G<=helicopter["Gmax"],True,(Message[correctGQ::verror,helicopter["Type"],helicopter["Gmin"],helicopter["Gmax"],G];False)]
+correctGQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
+ClearAll@allGood
+allGood[helicopter_?helicopterQ,V_,G_,temp_]:=AllTrue[{correctVQ[helicopter,V],correctGQ[helicopter,G],correctTQ[temp]},TrueQ]
+allGood[___]:=False
+
+
+(* ::Input::Initialization:: *)
+ClearAll@maneuver
+
+maneuver::usage="
+Returns an Association containing Maneuver type, Helicopter, Weight, Temperature, Interpolating functions for x, y, z, \[Theta], \[Psi], V}\n
+maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
+maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
+
+maneuver[Optional[name_String,"Unknown"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=
+
+If[allGood[helicopter,Last@initialconditions,G,temp],
+
+AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,imaneuver[helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0]}],
+$Failed
+]
+
+maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=maneuver[name,prevmaneuver["Helicopter"],form,lastState@prevmaneuver["Interpolating functions"],prevmaneuver["Weight"],prevmaneuver["Temperature"],gammafun,nyfun,nxfun,event,tFinal@prevmaneuver["Interpolating functions"]]
+
+ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:
+maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] or
+maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]"]
 
 
 (* ::Input::Initialization:: *)
@@ -170,13 +228,15 @@ ErrorChecking`setConsistencyChecks[plot,"Valid syntax:\n plot[{fun_Interpolating
 
 ClearAll@plots
 plots::internalerror="Some plots have invalid format";
-plots[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]:=Module[
+plots[arg_?(joinedinterpolFunListQ[#]||interpolFunListQ[#]&)]:=Module[
 {result=plot/@
 ({#[t]/.arg,domain[arg],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)},
 If[Not@MemberQ[result,$Failed],result,(Message[plots::internalerror];$Failed)]
 ]
 
-ErrorChecking`setConsistencyChecks[plots,"Valid syntax:\n plots[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]"];
+plots[arg_?manevrQ]:=plots[arg["Interpolating functions"]]
+
+ErrorChecking`setConsistencyChecks[plots,"Valid syntax:\n plots[arg_?(joinedinterpolFunListQ[#]||interpolFunListQ[#]&)]"];
 
 
 (* ::Input::Initialization:: *)
@@ -184,9 +244,11 @@ ClearAll@trajectoryPlot
 
 trajectoryPlot[funs_List,range_]:=ParametricPlot3D[funs,range,PlotRange->Full,AxesLabel->{"x","y","z"},PlotStyle->Thickness[0.0075]]
 
-trajectoryPlot[arg_?(joinedmanevrQ[#]||manevrQ[#]&)]:=trajectoryPlot[(appendt@{x,y,z})/.arg,Prepend[domain@arg,t]]
+trajectoryPlot[arg_?(joinedinterpolFunListQ[#]||interpolFunListQ[#]&)]:=trajectoryPlot[(appendt@{x,y,z})/.arg,Prepend[domain@arg,t]]
 
-ErrorChecking`setConsistencyChecks[trajectoryPlot,"Valid syntax:\n trajectoryPlot[arg_?(joinedmanevrQ[#]||manevrQ[#]&)] or
+trajectoryPlot[arg_?manevrQ]:=trajectoryPlot[arg["Interpolating functions"]]
+
+ErrorChecking`setConsistencyChecks[trajectoryPlot,"Valid syntax:\n trajectoryPlot[arg_?(joinedinterpolFunListQ[#]||interpolFunListQ[#]&)] or
 trajectoryPlot[funs_List,range_]"];
 
 
@@ -197,14 +259,47 @@ inequality[___]:=$Failed
 
 
 (* ::Input::Initialization:: *)
+ClearAll@domainsjoinableQ
+domainsjoinableQ[args:{_?manevrQ..}]:=Length[DeleteDuplicates@Flatten[domain/@args]]==Length[args]+1
+
+
+(* ::Input::Initialization:: *)
+ClearAll@margins
+margins[args_?interpolFunListQ (* \:0441\:043f\:0438\:0441\:043e\:043a \:043e\:0434\:043d\:043e\:0438\:043c\:0435\:043d\:043d\:044b\:0445 \:0438\:043d\:0442\:0435\:0440\:043f\:043e\:043b\:0438\:0440\:0443\:044e\:0449\:0438\:0445 \:0444\:0443\:043d\:043a\:0446\:0438\:0439 \:043e\:0442 \:043d\:0435\:0441\:043a\:043e\:043b\:044c\:043a\:0438\:0445 \:043c\:0430\:043d\:0435\:0432\:0440\:043e\:0432*)]:=Select[Tally[Flatten[domain[#[[2]]]&/@args]],#[[2]]==2&][[All,1]]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@pairs
+pairs[args_?interpolFunListQ (* \:0441\:043f\:0438\:0441\:043e\:043a \:043e\:0434\:043d\:043e\:0438\:043c\:0435\:043d\:043d\:044b\:0445 \:0438\:043d\:0442\:0435\:0440\:043f\:043e\:043b\:0438\:0440\:0443\:044e\:0449\:0438\:0445 \:0444\:0443\:043d\:043a\:0446\:0438\:0439 \:043e\:0442 \:043d\:0435\:0441\:043a\:043e\:043b\:044c\:043a\:0438\:0445 \:043c\:0430\:043d\:0435\:0432\:0440\:043e\:0432*)]:=Partition[args[[All,2]],2,1]
+
+
+(* ::Input::Initialization:: *)
+Clear@maneuversjoinableQ
+maneuversjoinableQ::domainserror="Unjoinable domains encountered";
+maneuversjoinableQ::continuityerror="Result seems to include discontinious functions";
+maneuversjoinableQ[args:{_?manevrQ..}]:=
+If[domainsjoinableQ@args,
+With[
+{allintfuns=Transpose[#["Interpolating functions"]&/@args]},
+If[AllTrue[AllTrue[MapThread[#1/.{t->#2}&,{pairs[allintfuns[[#]]],margins[allintfuns[[#]]]}],#[[1]]==#[[2]]&]&/@Range[Length@allintfuns],TrueQ],
+True,
+(Message[maneuversjoinableQ::continuityerror];False)]
+],
+(Message[maneuversjoinableQ::domainserror];False)
+]
+
+
+(* ::Input::Initialization:: *)
 ClearAll@join
 join[args:{InterpolatingFunction[___][___]..}]:=Piecewise[MapThread[List,{#&/@args,inequality/@(domain/@args)}]]
 
-join[args_?manevrQ (* \:0432 \:0434\:0430\:043d\:043d\:043e\:043c \:0441\:043b\:0443\:0447\:0430\:0435, \:044d\:0442\:043e \:043d\:0435 \:043c\:0430\:043d\:0435\:0432\:0440, \:0430 \:0441\:043f\:0438\:0441\:043e\:043a \:043e\:0434\:043d\:043e\:0438\:043c\:0435\:043d\:043d\:044b\:0445 \:0438\:043d\:0442\:0435\:0440\:043f\:043e\:043b\:0438\:0440\:0443\:044e\:0449\:0438\:0445 \:0444\:0443\:043d\:043a\:0446\:0438\:0439 \:043e\:0442 \:043d\:0435\:0441\:043a\:043e\:043b\:044c\:043a\:0438\:0445 \:043c\:0430\:043d\:0435\:0432\:0440\:043e\:0432*)]:=args[[1,1]]->join[args[[All,2]]]
+join[args_?interpolFunListQ (* \:0441\:043f\:0438\:0441\:043e\:043a \:043e\:0434\:043d\:043e\:0438\:043c\:0435\:043d\:043d\:044b\:0445 \:0438\:043d\:0442\:0435\:0440\:043f\:043e\:043b\:0438\:0440\:0443\:044e\:0449\:0438\:0445 \:0444\:0443\:043d\:043a\:0446\:0438\:0439 \:043e\:0442 \:043d\:0435\:0441\:043a\:043e\:043b\:044c\:043a\:0438\:0445 \:043c\:0430\:043d\:0435\:0432\:0440\:043e\:0432*)]:=args[[1,1]]->join[args[[All,2]]]
 
-join[args_:{_?manevrQ..}]:=join/@Transpose[args]
+join[args:{_?interpolFunListQ..}]:=join/@Transpose[args]
 
-join[___]:=$Failed
+join[args:{_?manevrQ..}]:=If[maneuversjoinableQ@args,join[#["Interpolating functions"]&/@args],$Failed]
+
+ErrorChecking`setConsistencyChecks[join,"Valid syntax for public version of the function 'join':\n join[args:{_?manevrQ..}]"];
 
 
 (* ::Input::Initialization:: *)
