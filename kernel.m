@@ -188,8 +188,9 @@ maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gam
 maneuver[Optional[name_String,"Unknown"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=
 
 If[allGood[helicopter,Last@initialconditions,G,temp],
-
+Check[
 AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,imaneuver[helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0]}],
+$Failed],
 $Failed
 ]
 
