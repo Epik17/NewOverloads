@@ -130,7 +130,9 @@ equations[form,initialconditions,gammafun,nyfun,nxfun]
 {WhenEvent[{AllTrue[{t>0.01,nxfun>nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nxmax,Round[nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001],Round[nyfun,0.001]];"StopIntegration"}]},
 
 appendt@functionslist,
+
 {t,0,Infinity},
+
 EvaluationMonitor:>{
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Theta]][t]]/.gammafunnyfunnxfunRule,\[Theta]dot],
 Sow[N[gammafun/Degree],gam],
@@ -188,7 +190,7 @@ Returns an Association containing Maneuver type, Helicopter, Weight, Temperature
 maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
 maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
 
-maneuver::integrationerror="Integration error during execution of maneuver `1`";
+maneuver::integrationerror="Integration error during execution of maneuver `1`. Result: `2`";
 maneuver::initconderror="Invalid initial conditions encountered during execution of maneuver `1`";
 maneuver::prevmanerror="Can't calculate maneuver `1` because of an error occurred during calculation of previous maneuver";
 
@@ -198,7 +200,7 @@ If[allGood[helicopter,Last@initialconditions,G,temp],
 result=Check[imaneuver[helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0],$Failed];
 If[interpolFunListQ[result],
 AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,result}],
-(Message[maneuver::integrationerror,name];$Failed)],
+(Message[maneuver::integrationerror,name,result];$Failed)],
 (Message[maneuver::initconderror,name];$Failed)
 ]
 ]
