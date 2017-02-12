@@ -29,7 +29,7 @@ Get[NotebookDirectory[]<>"constants.m"]
 
 
 (* ::Input::Initialization:: *)
-Clear[t,x,y,z,\[Theta],\[Psi],V,\[Gamma],nya,nxa,g]
+Clear[t,x,y,z,\[Theta],\[Psi],V,\[Gamma],nya,nxa,g,tadd,gamadd,nyadd,nxadd,tt,VV,gam]
 
 
 (* ::Input::Initialization:: *)
@@ -134,8 +134,15 @@ appendt@functionslist,
 {t,0,Infinity},
 
 EvaluationMonitor:>{
+(* for additional interpolation functions *)
+Sow[t,tadd],
+Sow[N[gammafun],gamadd],
+Sow[N@nyfun,nyadd],
+Sow[N@nxfun,nxadd],
+
+(*for details*)
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Theta]][t]]/.gammafunnyfunnxfunRule,\[Theta]dot],
-Sow[N[gammafun/Degree],gam],
+Sow[N[gammafun]/Degree,gam],
 Sow[N@nyfun,ny],
 Sow[N@nyAvaliable[helicopter,G,temp,y[t],V[t]],nyavaliable],
 Sow[N@nxfun,nx],
@@ -151,7 +158,7 @@ ErrorChecking`setConsistencyChecks[imaneuver]
 
 (* ::Input::Initialization:: *)
 ClearAll@manevrQ
-manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]
+manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Tally[domain/@arg["Interpolating functions"][[All,2]]][[1,2]]
 manevrQ[___]:=False
 
 
@@ -183,7 +190,7 @@ allGood[___]:=False
 
 
 (* ::Input::Initialization:: *)
-ClearAll@maneuver
+(*ClearAll@maneuver
 
 maneuver::usage="
 Returns an Association containing Maneuver type, Helicopter, Weight, Temperature, Interpolating functions for x, y, z, \[Theta], \[Psi], V}\n
@@ -204,6 +211,48 @@ AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpol
 (Message[maneuver::initconderror,name];$Failed)
 ]
 ]
+
+maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=maneuver[name,prevmaneuver["Helicopter"],form,lastState@prevmaneuver["Interpolating functions"],prevmaneuver["Weight"],prevmaneuver["Temperature"],gammafun,nyfun,nxfun,event,tFinal@prevmaneuver["Interpolating functions"]]
+
+maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver:$Failed,gammafun_,nyfun_,nxfun_,event_]:=(Message[maneuver::prevmanerror,name];$Failed)
+
+ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:
+maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] or
+maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]"]*)
+
+
+(* ::Input::Initialization:: *)
+ClearAll@maneuver
+
+maneuver::usage="
+Returns an Association containing Maneuver type, Helicopter, Weight, Temperature, Interpolating functions for x, y, z, \[Theta], \[Psi], V}\n
+maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
+maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
+
+maneuver::integrationerror="Integration error during execution of maneuver `1`. Result: `2`";
+maneuver::initconderror="Invalid initial conditions encountered during execution of maneuver `1`";
+maneuver::prevmanerror="Can't calculate maneuver `1` because of an error occurred during calculation of previous maneuver";
+
+maneuver[Optional[name_String,"Unknown"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=Module[{result,mainfunctions,additionalfunctions,joined,tfin},
+
+If[allGood[helicopter,Last@initialconditions,G,temp],
+
+result=Check[Reap[imaneuver[helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0],{tadd,gamadd,nyadd,nxadd}],$Failed];
+If[Length[result]>1&&interpolFunListQ[result[[1]]],
+mainfunctions=result[[1]];
+
+tfin=Last@domain@mainfunctions[[1,2]]-t0;
+
+additionalfunctions=MapThread[Rule,{{\[Gamma][t],nyy[t],nxx[t]},With[{times=#[[1]]},Interpolation[#,InterpolationOrder->1][mainfunctions[[1,2,1]]]&@Select[#,#[[1]]<=tfin&]&@DeleteDuplicatesBy[#,First]&@(Transpose[{times,#}])&/@#[[2]]]&@({#[[1]],Rest@#}&@Transpose[Sort[Transpose[Flatten[result[[2]],1]],#1[[1]]<#2[[1]]&]])}];
+joined=mainfunctions~Join~additionalfunctions;
+
+AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,joined}],
+(Message[maneuver::integrationerror,name,joined];$Failed)],
+(Message[maneuver::initconderror,name];$Failed)
+]
+]
+
+
 maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=maneuver[name,prevmaneuver["Helicopter"],form,lastState@prevmaneuver["Interpolating functions"],prevmaneuver["Weight"],prevmaneuver["Temperature"],gammafun,nyfun,nxfun,event,tFinal@prevmaneuver["Interpolating functions"]]
 
 maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver:$Failed,gammafun_,nyfun_,nxfun_,event_]:=(Message[maneuver::prevmanerror,name];$Failed)
@@ -243,7 +292,7 @@ ClearAll@plots
 plots::internalerror="Some plots have invalid format";
 plots[arg_?(joinedinterpolFunListQ[#]||interpolFunListQ[#]&)]:=Module[
 {result=plot/@
-({#[t]/.arg,domain[arg],(ToString@#)<>", "<>units[#],converter[#]}&/@functionslist)},
+({#[t]/.arg,domain[arg],(ToString@#)<>", "<>units[#],converter[#]}&/@(functionslist~Join~{\[Gamma],nxx,nyy}))},
 If[Not@MemberQ[result,$Failed],result,(Message[plots::internalerror];$Failed)]
 ]
 
@@ -287,13 +336,14 @@ pairs[args_?interpolFunListQ (* \:0441\:043f\:0438\:0441\:043e\:043a \:043e\:043
 
 
 (* ::Input::Initialization:: *)
-Clear@maneuversjoinableQ
+ClearAll@maneuversjoinableQ
 maneuversjoinableQ::domainserror="Unjoinable domains encountered";
 maneuversjoinableQ::continuityerror="Result seems to include discontinious functions";
 maneuversjoinableQ[args:{_?manevrQ..}]:=
 If[domainsjoinableQ@args,
 With[
-{allintfuns=Transpose[#["Interpolating functions"]&/@args]},
+{allintfuns=Select[#,Head[#[[1,1]]]==x||Head[#[[1,1]]]==y||Head[#[[1,1]]]==z||Head[#[[1,1]]]==\[Theta]||Head[#[[1,1]]]==\[Psi]||Head[#[[1,1]]]==V&||Head[#[[1,1]]]==\[Gamma]&]&@Transpose[#["Interpolating functions"]&/@args]},
+allintfuns1=allintfuns;
 If[AllTrue[AllTrue[MapThread[#1/.{t->#2}&,{pairs[allintfuns[[#]]],margins[allintfuns[[#]]]}],#[[1]]==#[[2]]&]&/@Range[Length@allintfuns],TrueQ],
 True,
 (Message[maneuversjoinableQ::continuityerror];False)]
