@@ -109,7 +109,10 @@ fun[manevrresult_?interpolFunListQ]"];
 
 (* ::Input::Initialization:: *)
 ClearAll@imaneuver
-
+imaneuver::vmax="Maximal velocity `1` kph reached for `2` at local time = `3` s";
+imaneuver::vzero="Velocity has become less than zero at local time = `1` s";
+imaneuver::nymax="Maximal \!\(\*SubscriptBox[\(n\), \(y\)]\) = `1` reached for `2` at local time = `3` s";
+imaneuver::nxmax="Maximal \!\(\*SubscriptBox[\(n\), \(x\)]\) = `1` reached for `2` at local time = `3` s when \!\(\*SubscriptBox[\(n\), \(y\)]\) = `4`";
 imaneuver[helicopter_,form_,initialconditions_,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_]:=Module[
 {gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->globalg},allgood},
 
@@ -118,13 +121,13 @@ equations[form,initialconditions,gammafun,nyfun,nxfun]
 ~Join~
 {WhenEvent[{event},{"StopIntegration"}]}
 ~Join~
-{WhenEvent[{AllTrue[{t>0.01,V[t]*globalmps>helicopter["Vmax"]},TrueQ]},{Print["V>Vmax!"];"StopIntegration"}]}
+{WhenEvent[{AllTrue[{t>0.01,V[t]*globalmps>helicopter["Vmax"]},TrueQ]},{Message[imaneuver::vmax,helicopter["Vmax"],helicopter["Type"],Round[t,0.001]];"StopIntegration"}]}
 ~Join~
-{WhenEvent[{AllTrue[{t>0.01,V[t]<0},TrueQ]},{Print["V<0!"];"StopIntegration"}]}
+{WhenEvent[{AllTrue[{t>0.01,V[t]<0},TrueQ]},{Message[imaneuver::vzero,Round[t,0.001]];"StopIntegration"}]}
 ~Join~
-{WhenEvent[{AllTrue[{t>0.01,nyfun>nyAvaliable[helicopter,G,temp,y[t],V[t]]},TrueQ]},{Print["ny limit reached!"];"StopIntegration"}]}
+{WhenEvent[{AllTrue[{t>0.01,nyfun>nyAvaliable[helicopter,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nymax,Round[nyAvaliable[helicopter,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001]];"StopIntegration"}]}
 ~Join~
-{WhenEvent[{AllTrue[{t>0.01,nxfun>nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]]},TrueQ]},{Print["nx limit reached!"];"StopIntegration"}]},
+{WhenEvent[{AllTrue[{t>0.01,nxfun>nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nxmax,Round[nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001],Round[nyfun,0.001]];"StopIntegration"}]},
 
 appendt@functionslist,
 {t,0,Infinity},
@@ -185,16 +188,23 @@ Returns an Association containing Maneuver type, Helicopter, Weight, Temperature
 maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
 maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
 
-maneuver[Optional[name_String,"Unknown"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=
+maneuver::integrationerror="Integration error during execution of maneuver `1`";
+maneuver::initconderror="Invalid initial conditions encountered during execution of maneuver `1`";
+maneuver::prevmanerror="Can't calculate maneuver `1` because of an error occurred during calculation of previous maneuver";
+
+maneuver[Optional[name_String,"Unknown"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=Module[{result},
 
 If[allGood[helicopter,Last@initialconditions,G,temp],
-Check[
-AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,imaneuver[helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0]}],
-$Failed],
-$Failed
+result=Check[imaneuver[helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0],$Failed];
+If[interpolFunListQ[result],
+AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,result}],
+(Message[maneuver::integrationerror,name];$Failed)],
+(Message[maneuver::initconderror,name];$Failed)
 ]
-
+]
 maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=maneuver[name,prevmaneuver["Helicopter"],form,lastState@prevmaneuver["Interpolating functions"],prevmaneuver["Weight"],prevmaneuver["Temperature"],gammafun,nyfun,nxfun,event,tFinal@prevmaneuver["Interpolating functions"]]
+
+maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver:$Failed,gammafun_,nyfun_,nxfun_,event_]:=(Message[maneuver::prevmanerror,name];$Failed)
 
 ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:
 maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] or
@@ -292,6 +302,10 @@ True,
 
 (* ::Input::Initialization:: *)
 ClearAll@join
+
+join::notallcorrect="Incorrect maneuver(s) encountered. Only `1` first maneuvers will be joined";
+join::firstincorrect="First manoeuver is incorrect. Joining canceled";
+
 join[args:{InterpolatingFunction[___][___]..}]:=Piecewise[MapThread[List,{#&/@args,inequality/@(domain/@args)}]]
 
 join[args_?interpolFunListQ (* \:0441\:043f\:0438\:0441\:043e\:043a \:043e\:0434\:043d\:043e\:0438\:043c\:0435\:043d\:043d\:044b\:0445 \:0438\:043d\:0442\:0435\:0440\:043f\:043e\:043b\:0438\:0440\:0443\:044e\:0449\:0438\:0445 \:0444\:0443\:043d\:043a\:0446\:0438\:0439 \:043e\:0442 \:043d\:0435\:0441\:043a\:043e\:043b\:044c\:043a\:0438\:0445 \:043c\:0430\:043d\:0435\:0432\:0440\:043e\:0432*)]:=args[[1,1]]->join[args[[All,2]]]
@@ -299,6 +313,10 @@ join[args_?interpolFunListQ (* \:0441\:043f\:0438\:0441\:043e\:043a \:043e\:0434
 join[args:{_?interpolFunListQ..}]:=join/@Transpose[args]
 
 join[args:{_?manevrQ..}]:=If[maneuversjoinableQ@args,join[#["Interpolating functions"]&/@args],$Failed]
+
+join[args:{_?(manevrQ[#]||#==$Failed&)..}]:=With[{lastCorrectManPosition=First@FirstPosition[args,$Failed]-1},
+If[lastCorrectManPosition>0,(Message[join::notallcorrect,lastCorrectManPosition];join@Take[args,lastCorrectManPosition]),
+(Message[join::firstincorrect];$Failed)]]
 
 ErrorChecking`setConsistencyChecks[join,"Valid syntax for public version of the function 'join':\n join[args:{_?manevrQ..}]"];
 

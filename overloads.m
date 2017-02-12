@@ -63,7 +63,7 @@ ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input has to be nyAvaliable
 
 (* ::Input::Initialization:: *)
 ClearAll@airDensity
-airDensity[H_]:=If[greaterThanZero[H,"H"],0.125*(20-H/1000)/(20+H/1000)]
+airDensity[H_]:=If[H>=0,0.125*(20-H/1000)/(20+H/1000)]
 ErrorChecking`setConsistencyChecks[airDensity,"Your input has to be airDensity[H_]"];
 
 
