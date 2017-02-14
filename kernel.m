@@ -255,7 +255,7 @@ AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpol
 ]
 
 
-maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=maneuver[name,prevmaneuver["Helicopter"],form,lastState@prevmaneuver["Interpolating functions"],prevmaneuver["Weight"],prevmaneuver["Temperature"],gammafun,nyfun,nxfun,event,tFinal@prevmaneuver["Interpolating functions"]]
+maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=maneuver[name,prevmaneuver["Helicopter"],form,Take[lastState@prevmaneuver,6],prevmaneuver["Weight"],prevmaneuver["Temperature"],gammafun,nyfun,nxfun,event,tFinal@prevmaneuver["Interpolating functions"]]
 
 maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver:$Failed,gammafun_,nyfun_,nxfun_,event_]:=(Message[maneuver::prevmanerror,name];$Failed)
 
