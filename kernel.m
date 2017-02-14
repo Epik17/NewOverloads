@@ -99,9 +99,17 @@ ErrorChecking`setConsistencyChecks[appendt,"Functions symbols list must contain 
 
 
 (* ::Input::Initialization:: *)
+ClearAll@manevrQ
+manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Tally[domain/@arg["Interpolating functions"][[All,2]]][[1,2]]
+manevrQ[___]:=False
+
+
+(* ::Input::Initialization:: *)
 ClearAll@lastState
 lastState[manevrresult_?interpolFunListQ]:=
-((appendt@functionslist)/.manevrresult)/.{t->tFinal[manevrresult]}
+((appendt@(functionslist~Join~{\[Gamma],nyy,nxx}))/.manevrresult)/.{t->tFinal[manevrresult]}
+
+lastState[manevr_?manevrQ]:=lastState@manevr["Interpolating functions"]
 
 ErrorChecking`setConsistencyChecks[{tStart,tFinal,lastState},"Valid syntax:
 fun[manevrresult_?interpolFunListQ]"];
@@ -111,7 +119,7 @@ fun[manevrresult_?interpolFunListQ]"];
 ClearAll@imaneuver
 imaneuver::vmax="Maximal velocity `1` kph reached for `2` at local time = `3` s";
 imaneuver::vzero="Velocity has become less than zero at local time = `1` s";
-imaneuver::nymax="Maximal \!\(\*SubscriptBox[\(n\), \(y\)]\) = `1` reached for `2` at local time = `3` s";
+imaneuver::nymax="Maximal \!\(\*SubscriptBox[\(n\), \(y\)]\) = `1` reached for `2` at local time = `3` s, y = `4` m, V = `5` kph";
 imaneuver::nxmax="Maximal \!\(\*SubscriptBox[\(n\), \(x\)]\) = `1` reached for `2` at local time = `3` s when \!\(\*SubscriptBox[\(n\), \(y\)]\) = `4`";
 imaneuver[helicopter_,form_,initialconditions_,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_]:=Module[
 {gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->globalg},allgood},
@@ -125,7 +133,7 @@ equations[form,initialconditions,gammafun,nyfun,nxfun]
 ~Join~
 {WhenEvent[{AllTrue[{t>0.01,V[t]<0},TrueQ]},{Message[imaneuver::vzero,Round[t,0.001]];"StopIntegration"}]}
 ~Join~
-{WhenEvent[{AllTrue[{t>0.01,nyfun>nyAvaliable[helicopter,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nymax,Round[nyAvaliable[helicopter,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001]];"StopIntegration"}]}
+{WhenEvent[{AllTrue[{t>0.01,nyfun>nyAvaliable[helicopter,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nymax,Round[nyAvaliable[helicopter,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001],Round[y[t],0.001],Round[V[t]globalmps,0.001]];"StopIntegration"}]}
 ~Join~
 {WhenEvent[{AllTrue[{t>0.01,nxfun>nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nxmax,Round[nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001],Round[nyfun,0.001]];"StopIntegration"}]},
 
@@ -154,12 +162,6 @@ Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRu
 ])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]}] (* domain correction *) 
 
 ErrorChecking`setConsistencyChecks[imaneuver]
-
-
-(* ::Input::Initialization:: *)
-ClearAll@manevrQ
-manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Tally[domain/@arg["Interpolating functions"][[All,2]]][[1,2]]
-manevrQ[___]:=False
 
 
 (* ::Input::Initialization:: *)
