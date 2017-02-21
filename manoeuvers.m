@@ -93,4 +93,13 @@ ClearAll@horizFlight
 horizFlight[prevmanevr_?manevrQ,event_]:=If[Round[(lastState@prevmanevr)[[4]],0.0000001]==0,stableState[prevmanevr,event],$Failed]
 
 
+(* ::Input::Initialization:: *)
+ClearAll@pikirovanie
+pikirovanie[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=myComposition[
+ruchkaOtSebya[#,nyvvoda,\[Theta]vvoda,Sin[\[Theta][t]]]&,
+razgon[#,vvyvoda]&,
+ruchkaNaSebya[#,nyvyvoda,-\[Theta]vvoda,Sin[\[Theta][t]]]&,
+prevmanevr]
+
+
 
