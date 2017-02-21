@@ -388,7 +388,8 @@ ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluate
 (* ::Input::Initialization:: *)
 ClearAll@myComposition
 SetAttributes[myComposition,HoldFirst]
-myComposition[maneuver__,initialconditions_?initialConditionsQ]:=join@Rest@ComposeList[{maneuver},initialconditions]
+myComposition[maneuver__,initial_?(initialConditionsQ[#]||manevrQ[#]&)]:=join@Rest@ComposeList[{maneuver},initial]
+(*myComposition[maneuver__,prevmanevr_?manevrQ]:=join@Rest@ComposeList[{maneuver},prevmanevr]*)
 
 
 
