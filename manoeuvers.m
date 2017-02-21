@@ -39,7 +39,7 @@ Piecewise[{{ny0+If[ny1>ny0,1,-1]k t,t<=T},{ny1,t>T}}]
 
 (* ::Input::Initialization:: *)
 ClearAll@nxZad
-nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Vy_:0]:=With[{nxaval=nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,Vy]-0.01},If[nxzad<=nxaval,nxzad,nxaval]]
+nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nxaval=nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,0]-0.01},If[nxzad<=nxaval,nxzad,nxaval]]
 
 
 (* ::Input::Initialization:: *)
@@ -48,7 +48,7 @@ ClearAll@ruchkaNaSebya
 ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_,nxfun_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]>(lastState@prevmanevr)[[4]] +delta\[Theta]] 
 
 (* max nx *)
-ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=ruchkaNaSebya[prevmanevr,nyzad,delta\[Theta],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-0.01]
+ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=ruchkaNaSebya[prevmanevr,nyzad,delta\[Theta],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-0.01]
 
 
 (* ::Input::Initialization:: *)
@@ -70,7 +70,7 @@ joinEvent[arg_,newevent_]:={arg,newevent}
 (* ::Input::Initialization:: *)
 ClearAll@razgon
 razgon::verror="V final is less or equal V initial";
-razgon[prevmanevr_?manevrQ,Vdesired_]:=If[Vdesired>(lastState@prevmanevr)[[6]],stablePitchAndRoll[prevmanevr,joinEvent[V[t]==Vdesired,V'[t]<0.001],nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)[[4]]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-0.01],
+razgon[prevmanevr_?manevrQ,Vdesired_]:=If[Vdesired>(lastState@prevmanevr)[[6]],stablePitchAndRoll[prevmanevr,joinEvent[V[t]==Vdesired,V'[t]<0.001],nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)[[4]]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-0.01],
 (Message[razgon::verror];$Failed)
 ]
 setConsistencyChecks[razgon]
@@ -85,7 +85,7 @@ razgonUpToVavaliable[prevmanevr_?manevrQ]:=razgon[prevmanevr,100500]
 ClearAll@ruchkaOtSebya
 ruchkaOtSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_,nxfun_]:=maneuver["ruchkaOtSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[1,nyzad],nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[1,nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]==(lastState@prevmanevr)[[4]] +delta\[Theta]] 
 
-ruchkaOtSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=ruchkaOtSebya[prevmanevr,nyzad,delta\[Theta],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]]
+ruchkaOtSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=ruchkaOtSebya[prevmanevr,nyzad,delta\[Theta],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]]
 
 
 (* ::Input::Initialization:: *)
@@ -99,6 +99,15 @@ pikirovanie[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=myC
 ruchkaOtSebya[#,nyvvoda,\[Theta]vvoda,Sin[\[Theta][t]]]&,
 razgon[#,vvyvoda]&,
 ruchkaNaSebya[#,nyvyvoda,-\[Theta]vvoda,Sin[\[Theta][t]]]&,
+prevmanevr]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@gorka
+gorka[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=myComposition[
+ruchkaNaSebya[#,nyvvoda,\[Theta]vvoda,Sin[\[Theta][t]]]&,
+stableState[#,V[t]<vvyvoda]&,(*
+ruchkaOtSebya[#,nyvyvoda,-\[Theta]vvoda,Sin[\[Theta][t]]]&,*)
 prevmanevr]
 
 

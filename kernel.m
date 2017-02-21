@@ -135,7 +135,7 @@ equations[form,initialconditions,gammafun,nyfun,nxfun]
 ~Join~
 {WhenEvent[{AllTrue[{t>0.01,nyfun>nyAvaliable[helicopter,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nymax,Round[nyAvaliable[helicopter,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001],Round[y[t],0.001],Round[V[t]globalmps,0.001]];"StopIntegration"}]}
 ~Join~
-{WhenEvent[{AllTrue[{t>0.01,nxfun>nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nxmax,Round[nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001],Round[nyfun,0.001]];"StopIntegration"}]},
+{WhenEvent[{AllTrue[{t>0.01,nxfun>nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0]},TrueQ]},{Message[imaneuver::nxmax,Round[nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0],0.001],helicopter["Type"],Round[t,0.001],Round[nyfun,0.001]];"StopIntegration"}]},
 
 appendt@functionslist,
 
@@ -154,7 +154,7 @@ Sow[N[gammafun]/Degree,gam],
 Sow[N@nyfun,ny],
 Sow[N@nyAvaliable[helicopter,G,temp,y[t],V[t]],nyavaliable],
 Sow[N@nxfun,nx],
-Sow[N@nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t]],nxavaliable],
+Sow[N@nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0],nxavaliable],
 Sow[3.6V[t],VV],
 Sow[t,tt],
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot]
@@ -349,7 +349,7 @@ SetAttributes[idetails,HoldFirst]
 SetAttributes[details,HoldFirst]
 
 idetails[man_,tags_]:=ReleaseHold[Flatten[(Reap[man;,tags])[[2]],1]]
-details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nyavaliable,nx,nxavaliable,VV}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]
+details[man_,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nyavaliable,nx,nxavaliable,VV}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]
 ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
 
 

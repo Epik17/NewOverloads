@@ -55,7 +55,7 @@ denominator=helicopter["TraspUZemli"]/helicopter["ctgTotH"]-diapason[helicopter,
 
 (*If[Abs[denominator]>0.00001,*)(helicopter["TraspUZemli"]/helicopter["ctgTotH"]-H)/denominator(*,(Message[nyAvaliable::denominatorerror];$Failed)]*)(*,
 
-Print["FUCK"];$Failed]*)
+Print["FUUU"];$Failed]*)
 ]
 
 ErrorChecking`setConsistencyChecks[nyAvaliable,"Your input has to be nyAvaliable[helicopter_?helicopterQ,G_?NumericQ,temp_?NumericQ,H_,V_]"];
@@ -70,11 +70,9 @@ ErrorChecking`setConsistencyChecks[airDensity,"Your input has to be airDensity[H
 (* ::Input::Initialization:: *)
 ClearAll@nxAvaliable
 nxAvaliable::Verror="Velocity has to be greater than zero. Encountered value: `1` globalmps";
-nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]:=Module[{tempV,Cx=0.0115},
-(*If[V>0,
-If[allGood[helicopter,V,G,temp,hManevraCurrent,ny],*)
+nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Vy_]:=Module[{tempV,Cx=0.0115},
 tempV:=3.6*V;
-(540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV-Cx*helicopter["Fomet"]*airDensity[hManevraCurrent]*V^2/2/G(*,$Failed],(Message[nxAvaliable::Verror,V];$Failed)]*)]
+(540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV-Cx*helicopter["Fomet"]*airDensity[hManevraCurrent]*V^2/2/G]
 ErrorChecking`setConsistencyChecks[nxAvaliable,"Your input has to be nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]"];
 
 
