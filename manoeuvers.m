@@ -39,16 +39,16 @@ Piecewise[{{ny0+If[ny1>ny0,1,-1]k t,t<=T},{ny1,t>T}}]
 
 (* ::Input::Initialization:: *)
 ClearAll@nxZad
-nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nxaval=nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,0]-0.01},If[nxzad<=nxaval,nxzad,nxaval]]
+nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,V0_]:=With[{nxaval=(*Echo[#,"1"]&@*)nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,0]-(*Echo[#,"2"]&@*)nxAvaliable[helicopter,1,G,temp,hManevraCurrent,V0,0]},If[nxzad<=nxaval,nxzad,nxaval]]
 
 
 (* ::Input::Initialization:: *)
 ClearAll@ruchkaNaSebya 
 (* zad nx *)
-ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_,nxfun_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]>(lastState@prevmanevr)[[4]] +delta\[Theta]] 
+ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_,nxfun_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],(*Echo[#,"nxZad"]&@*)nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],(*Echo[#,"V0"]&@*)(lastState@prevmanevr)[[6]]],\[Theta][t]>(lastState@prevmanevr)[[4]] +delta\[Theta]] 
 
 (* max nx *)
-ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=ruchkaNaSebya[prevmanevr,nyzad,delta\[Theta],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-0.01]
+ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=ruchkaNaSebya[prevmanevr,nyzad,delta\[Theta],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],prevmanevr["Temperature"],(lastState@prevmanevr)[[6]],0]]
 
 
 (* ::Input::Initialization:: *)

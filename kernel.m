@@ -241,9 +241,10 @@ converter[_]:=1
 
 (* ::Input::Initialization:: *)
 Clear@units
-units[V]:="kph"
-units[\[Psi]|\[Theta]]:="\[Degree]"
-units[_]:="m"
+units[V]:=", kph"
+units[\[Psi]|\[Theta]|\[Gamma]]:=", \[Degree]"
+units[nxx|nyy]:=""
+units[_]:=", m"
 
 
 (* ::Input::Initialization:: *)
@@ -262,7 +263,7 @@ ClearAll@plots
 plots::internalerror="Some plots have invalid format";
 plots[arg_?(joinedinterpolFunListQ[#]||interpolFunListQ[#]&)]:=Module[
 {result=plot/@
-({#[t]/.arg,domain[arg],(ToString@#)<>", "<>units[#],converter[#]}&/@(functionslist~Join~{\[Gamma],nxx,nyy}))},
+({#[t]/.arg,domain[arg],(ToString@#)<>units[#],converter[#]}&/@(functionslist~Join~{\[Gamma],nxx,nyy}))},
 If[Not@MemberQ[result,$Failed],result,(Message[plots::internalerror];$Failed)]
 ]
 

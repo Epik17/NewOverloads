@@ -74,7 +74,8 @@ nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Vy_]:=Modul
 tempV:=3.6*V;
 (540/helicopter["Gnorm"])*((helicopter["TraspUZemli"]*(1-ny)/helicopter["ctgTotH"]+diapason[helicopter,G,temp,V]*ny-hManevraCurrent)*helicopter["ctgNotH"]-0.0066*G*Vy(*/2*))/tempV-Cx*helicopter["Fomet"]*airDensity[hManevraCurrent]*V^2/2/G]
 
-nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Vy_,V0_]:=nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,Vy]-nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V0,Vy]
+(* c \:043f\:043e\:043f\:0440\:0430\:0432\:043a\:043e\:0439 \:043d\:0430 \:0448\:0430\:0433 *)
+nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Vy_,V0_]:=nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,Vy]-nxAvaliable[helicopter,1,G,temp,hManevraCurrent,V0,Vy]
 
 ErrorChecking`setConsistencyChecks[nxAvaliable,"Your input has to be nxAvaliable[helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Optional[Vy_,0]]"];
 
