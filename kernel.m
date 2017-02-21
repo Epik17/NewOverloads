@@ -100,7 +100,7 @@ ErrorChecking`setConsistencyChecks[appendt,"Functions symbols list must contain 
 
 (* ::Input::Initialization:: *)
 ClearAll@manevrQ
-manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Tally[domain/@arg["Interpolating functions"][[All,2]]][[1,2]]
+manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Tally[SetPrecision[domain/@arg["Interpolating functions"][[All,2]],50]][[1,2]]
 manevrQ[___]:=False
 
 
@@ -192,38 +192,6 @@ allGood[___]:=False
 
 
 (* ::Input::Initialization:: *)
-(*ClearAll@maneuver
-
-maneuver::usage="
-Returns an Association containing Maneuver type, Helicopter, Weight, Temperature, Interpolating functions for x, y, z, \[Theta], \[Psi], V}\n
-maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] calculates maneuver based on initial conditions; t0 (which is 0 by default) is used for correcting domains of resulting functions \n
-maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_] calculates maneuver based on previous maneuver";
-
-maneuver::integrationerror="Integration error during execution of maneuver `1`. Result: `2`";
-maneuver::initconderror="Invalid initial conditions encountered during execution of maneuver `1`";
-maneuver::prevmanerror="Can't calculate maneuver `1` because of an error occurred during calculation of previous maneuver";
-
-maneuver[Optional[name_String,"Unknown"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0]:=Module[{result},
-
-If[allGood[helicopter,Last@initialconditions,G,temp],
-result=Check[imaneuver[helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0],$Failed];
-If[interpolFunListQ[result],
-AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,result}],
-(Message[maneuver::integrationerror,name,result];$Failed)],
-(Message[maneuver::initconderror,name];$Failed)
-]
-]
-
-maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]:=maneuver[name,prevmaneuver["Helicopter"],form,lastState@prevmaneuver["Interpolating functions"],prevmaneuver["Weight"],prevmaneuver["Temperature"],gammafun,nyfun,nxfun,event,tFinal@prevmaneuver["Interpolating functions"]]
-
-maneuver[Optional[name_String,"Unknown"],form_?formQ,prevmaneuver:$Failed,gammafun_,nyfun_,nxfun_,event_]:=(Message[maneuver::prevmanerror,name];$Failed)
-
-ErrorChecking`setConsistencyChecks[maneuver,"Valid syntax:
-maneuver[Optional[name_String,\"Unknown\"],helicopter_?helicopterQ,form_?formQ,initialconditions_?initialConditionsQ,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_:0] or
-maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gammafun_,nyfun_,nxfun_,event_]"]*)
-
-
-(* ::Input::Initialization:: *)
 ClearAll@maneuver
 
 maneuver::usage="
@@ -245,7 +213,7 @@ mainfunctions=result[[1]];
 
 tfin=Last@domain@mainfunctions[[1,2]]-t0;
 
-additionalfunctions=MapThread[Rule,{{\[Gamma][t],nyy[t],nxx[t]},With[{times=#[[1]]},Interpolation[#,InterpolationOrder->1][mainfunctions[[1,2,1]]]&@DeleteDuplicatesBy[#,First]&@With[{last=SelectFirst[#,#[[1]]>=tfin&]},Select[#,#[[1]]<tfin&]~Join~{last}]&@(*Select[#,#[[1]]<=tfin&]&@*)DeleteDuplicatesBy[#,First]&@(Transpose[{times,#}])&/@#[[2]]]&@({#[[1]],Rest@#}&@Transpose[Sort[Transpose[Flatten[result[[2]],1]],#1[[1]]<#2[[1]]&]])}];
+additionalfunctions=MapThread[Rule,{{\[Gamma][t],nyy[t],nxx[t]},With[{times=#[[1]]},Interpolation[SetPrecision[#,50],InterpolationOrder->1][mainfunctions[[1,2,1]]]&@DeleteDuplicatesBy[#,First]&@With[{last=SelectFirst[#,#[[1]]>=tfin&]},Select[#,#[[1]]<tfin&]~Join~{last}]&@(*Select[#,#[[1]]<=tfin&]&@*)DeleteDuplicatesBy[#,First]&@(Transpose[{times,#}])&/@#[[2]]]&@({#[[1]],Rest@#}&@Transpose[Sort[Transpose[Flatten[result[[2]],1]],#1[[1]]<#2[[1]]&]])}];
 joined=mainfunctions~Join~additionalfunctions;
 
 AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,joined}],
