@@ -100,7 +100,7 @@ ErrorChecking`setConsistencyChecks[appendt,"Functions symbols list must contain 
 
 (* ::Input::Initialization:: *)
 ClearAll@manevrQ
-manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Tally[domain/@arg["Interpolating functions"][[All,2]]][[1,2]]
+manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Echo[Tally[domain/@arg["Interpolating functions"][[All,2]]]][[1,2]]
 manevrQ[___]:=False
 
 
@@ -243,9 +243,9 @@ result=Check[Reap[imaneuver[helicopter,form,initialconditions,G,temp,gammafun,ny
 If[Length[result]>1&&interpolFunListQ[result[[1]]],
 mainfunctions=result[[1]];
 
-tfin=Last@domain@mainfunctions[[1,2]]-t0;
+tfin=Echo[Last@domain@mainfunctions[[1,2]]-t0];
 
-additionalfunctions=MapThread[Rule,{{\[Gamma][t],nyy[t],nxx[t]},With[{times=#[[1]]},Interpolation[SetPrecision[#,16],InterpolationOrder->1][mainfunctions[[1,2,1]]]&@DeleteDuplicatesBy[#,First]&@Select[#,#[[1]]<=tfin&]&@DeleteDuplicatesBy[#,First]&@(Transpose[{times,#}])&/@#[[2]]]&@({#[[1]],Rest@#}&@Transpose[Sort[Transpose[Flatten[result[[2]],1]],#1[[1]]<#2[[1]]&]])}];
+additionalfunctions=MapThread[Rule,{{\[Gamma][t],nyy[t],nxx[t]},With[{times=#[[1]]},Interpolation[#,InterpolationOrder->1][mainfunctions[[1,2,1]]]&@Echo@DeleteDuplicatesBy[#,First]&@With[{last=SelectFirst[#,#[[1]]>=tfin&]},Select[#,#[[1]]<tfin&]~Join~{last}]&@(*Select[#,#[[1]]<=tfin&]&@*)Echo@DeleteDuplicatesBy[#,First]&@(Transpose[{times,#}])&/@#[[2]]]&@({#[[1]],Rest@#}&@Transpose[Sort[Transpose[Flatten[result[[2]],1]],#1[[1]]<#2[[1]]&]])}];
 joined=mainfunctions~Join~additionalfunctions;
 
 AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,joined}],
