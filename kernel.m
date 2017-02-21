@@ -245,7 +245,7 @@ mainfunctions=result[[1]];
 
 tfin=Last@domain@mainfunctions[[1,2]]-t0;
 
-additionalfunctions=MapThread[Rule,{{\[Gamma][t],nyy[t],nxx[t]},With[{times=#[[1]]},Interpolation[#,InterpolationOrder->1][mainfunctions[[1,2,1]]]&@Select[#,#[[1]]<=tfin&]&@DeleteDuplicatesBy[#,First]&@(Transpose[{times,#}])&/@#[[2]]]&@({#[[1]],Rest@#}&@Transpose[Sort[Transpose[Flatten[result[[2]],1]],#1[[1]]<#2[[1]]&]])}];
+additionalfunctions=MapThread[Rule,{{\[Gamma][t],nyy[t],nxx[t]},With[{times=#[[1]]},Interpolation[SetPrecision[#,16],InterpolationOrder->1][mainfunctions[[1,2,1]]]&@DeleteDuplicatesBy[#,First]&@Select[#,#[[1]]<=tfin&]&@DeleteDuplicatesBy[#,First]&@(Transpose[{times,#}])&/@#[[2]]]&@({#[[1]],Rest@#}&@Transpose[Sort[Transpose[Flatten[result[[2]],1]],#1[[1]]<#2[[1]]&]])}];
 joined=mainfunctions~Join~additionalfunctions;
 
 AssociationThread[{"Maneuver type","Helicopter","Weight","Temperature","Interpolating functions"},{name,helicopter,G,temp,joined}],

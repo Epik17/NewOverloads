@@ -39,32 +39,45 @@ Piecewise[{{ny0+If[ny1>ny0,1,-1]k t,t<=T},{ny1,t>T}}]
 
 (* ::Input::Initialization:: *)
 ClearAll@nxZad
-nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Vy_:0]:=With[{nxaval=nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,Vy]},If[nxzad<=nxaval,nxzad,nxaval]]
+nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_,Vy_:0]:=With[{nxaval=nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,Vy]-0.01},If[nxzad<=nxaval,nxzad,nxaval]]
 
 
 (* ::Input::Initialization:: *)
-ClearAll@ruchkaNaSebya (* max nx *)
-ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[1,nyzad],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-0.01,\[Theta][t]==(lastState@prevmanevr)[[4]] +delta\[Theta]] 
+ClearAll@ruchkaNaSebya 
+(* zad nx *)
+ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_,nxfun_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]==(lastState@prevmanevr)[[4]] +delta\[Theta]] 
+
+(* max nx *)
+ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=ruchkaNaSebya[prevmanevr,nyzad,delta\[Theta],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-0.01]
 
 
 (* ::Input::Initialization:: *)
-ClearAll@ruchkaNaSebya (* zad nx *)
-ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],nxZad[Sin[\[Theta][t]],prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]==(lastState@prevmanevr)[[4]] +delta\[Theta]] 
-
-
-(* ::Input::Initialization:: *)
-ClearAll@ruchkaNaSebya (* zad nx *)
-ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,1.1,0,\[Theta][t]>delta\[Theta]] 
-
-
-(* ::Input::Initialization:: *)
-ClearAll@ruchkaOtSebya
-ruchkaOtSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[1,nyzad],nxZad[Sin[\[Theta][t]],prevmanevr["Helicopter"],nyruchkaVperedNazad[1,nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]==(lastState@prevmanevr)[[4]] +delta\[Theta]] 
+ClearAll@stablePitchAndRoll
+stablePitchAndRoll[prevmanevr_?manevrQ,event_,nxfun_]:=With[{laststate=lastState@prevmanevr},maneuver["Stable","Classic",prevmanevr,laststate[[7]],Cos[laststate[[4]]],nxZad[nxfun,prevmanevr["Helicopter"],Cos[laststate[[4]]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],event]]
 
 
 (* ::Input::Initialization:: *)
 ClearAll@stableState
+stableState[prevmanevr_?manevrQ,event_]:=stablePitchAndRoll[prevmanevr,event,Sin[\[Theta][t]]]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@razgon
+razgon[prevmanevr_?manevrQ,event_]:=stablePitchAndRoll[prevmanevr,event,nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)[[4]]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-0.01]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@stableState
+stableState[prevmanevr_?manevrQ,event_,nxfun_]:=With[{laststate=lastState@prevmanevr},maneuver["Stable","Classic",prevmanevr,laststate[[7]],Cos[laststate[[4]]],nxZad[nxfun,prevmanevr["Helicopter"],Cos[laststate[[4]]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],event]]
+
 stableState[prevmanevr_?manevrQ,event_]:=With[{laststate=lastState@prevmanevr},maneuver["Stable","Classic",prevmanevr,laststate[[7]],Cos[laststate[[4]]],nxZad[Sin[\[Theta][t]],prevmanevr["Helicopter"],Cos[laststate[[4]]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],event]]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@ruchkaOtSebya
+ruchkaOtSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_,nxfun_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[1,nyzad],nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[1,nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]==(lastState@prevmanevr)[[4]] +delta\[Theta]] 
+
+ruchkaOtSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_]:=ruchkaOtSebya[prevmanevr,nyzad,delta\[Theta],nxAvaliable[prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)[[-2]],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-0.01](*maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[1,nyzad],nxZad[Sin[\[Theta][t]],prevmanevr["Helicopter"],nyruchkaVperedNazad[1,nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]==(lastState@prevmanevr)[[4]] +delta\[Theta]] *)
 
 
 (* ::Input::Initialization:: *)
