@@ -127,7 +127,7 @@ imaneuver[helicopter_,form_,initialconditions_,G_,temp_,gammafun_,nyfun_,nxfun_,
 (First@NDSolve[
 equations[form,initialconditions,gammafun,nyfun,nxfun]
 ~Join~
-{WhenEvent[event,{Print["main event; exiting.."];"StopIntegration"}]}
+{WhenEvent[event,{"StopIntegration"}]}
 ~Join~
 {WhenEvent[{AllTrue[{t>0.01,V[t]*globalmps>helicopter["Vmax"]},TrueQ]},{Message[imaneuver::vmax,helicopter["Vmax"],helicopter["Type"],Round[t,0.001]];"StopIntegration"}]}
 ~Join~
