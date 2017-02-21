@@ -385,4 +385,10 @@ details[man_maneuver,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nyavaliable
 ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
 
 
+(* ::Input::Initialization:: *)
+ClearAll@myComposition
+SetAttributes[myComposition,HoldFirst]
+myComposition[maneuver__,initialconditions_?initialConditionsQ]:=join@Rest@ComposeList[{maneuver},initialconditions]
+
+
 
