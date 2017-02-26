@@ -45,12 +45,12 @@ nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nx
 (* ::Input::Initialization:: *)
 ClearAll@ruchkaNaSebya 
 (* zad nx *)
-ruchkaNaSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_,nxfun_]:=maneuver["ruchkaNaSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],(*Echo[#,"nxZad"]&@*)nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]>(lastState@prevmanevr)["\[Theta]"] +delta\[Theta]] 
+ruchkaNaSebya[prevmanevr_?manevrQ,Optional[name_String,"ruchkaNaSebya"],nyzad_,delta\[Theta]_,nxfun_]:=maneuver[name,"Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],(*Echo[#,"nxZad"]&@*)nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]>(lastState@prevmanevr)["\[Theta]"] +delta\[Theta]] 
 
 
 (* ::Input::Initialization:: *)
 ClearAll@stablePitchAndRoll
-stablePitchAndRoll[prevmanevr_?manevrQ,event_,nxfun_]:=With[{laststate=lastState@prevmanevr},maneuver["Stable","Classic",prevmanevr,laststate["\[Gamma]"],Cos[laststate["\[Theta]"]],nxZad[nxfun,prevmanevr["Helicopter"],Cos[laststate["\[Theta]"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],event]]
+stablePitchAndRoll[prevmanevr_?manevrQ,Optional[name_String,"Stable"],event_,nxfun_]:=With[{laststate=lastState@prevmanevr},maneuver[name,"Classic",prevmanevr,laststate["\[Gamma]"],Cos[laststate["\[Theta]"]],nxZad[nxfun,prevmanevr["Helicopter"],Cos[laststate["\[Theta]"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],event]]
 
 
 (* ::Input::Initialization:: *)
@@ -62,7 +62,7 @@ joinEvent[arg_,newevent_]:={arg,newevent}
 (* ::Input::Initialization:: *)
 ClearAll@razgon
 razgon::verror="V final is less or equal V initial";
-razgon[prevmanevr_?manevrQ,Vdesired_]:=If[Vdesired>(lastState@prevmanevr)["V"],stablePitchAndRoll[prevmanevr,joinEvent[V[t]==Vdesired,V'[t]<0.01],nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)["ny"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-0.01],
+razgon[prevmanevr_?manevrQ,Optional[name_String,"Razgon"],Vdesired_]:=If[Vdesired>(lastState@prevmanevr)["V"],stablePitchAndRoll[prevmanevr,name,joinEvent[V[t]==Vdesired,V'[t]<0.01],nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)["ny"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-0.01],
 (Message[razgon::verror];$Failed)
 ]
 setConsistencyChecks[razgon]
@@ -70,12 +70,12 @@ setConsistencyChecks[razgon]
 
 (* ::Input::Initialization:: *)
 ClearAll@razgonUpToVavaliable
-razgonUpToVavaliable[prevmanevr_?manevrQ]:=razgon[prevmanevr,100500]
+razgonUpToVavaliable[prevmanevr_?manevrQ,Optional[name_String,"Razgon"]]:=razgon[prevmanevr,name,100500]
 
 
 (* ::Input::Initialization:: *)
 ClearAll@ruchkaOtSebya
-ruchkaOtSebya[prevmanevr_?manevrQ,nyzad_,delta\[Theta]_,nxfun_]:=maneuver["ruchkaOtSebya","Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]==(lastState@prevmanevr)["\[Theta]"] +delta\[Theta]] 
+ruchkaOtSebya[prevmanevr_?manevrQ,Optional[name_String,"ruchkaOtSebya"],nyzad_,delta\[Theta]_,nxfun_]:=maneuver[name,"Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]==(lastState@prevmanevr)["\[Theta]"] +delta\[Theta]] 
 
 
 (* ::Input::Initialization:: *)
@@ -100,8 +100,8 @@ gorka[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=Module[
 nxfun:=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-dnxa;
 
 myComposition[
-ruchkaNaSebya[#,nyvvoda,\[Theta]vvoda,nxfun]&,
-stablePitchAndRoll[#,V[t]<vvyvoda,nxfun]&,
+ruchkaNaSebya[#,"Vvod v gorku",nyvvoda,\[Theta]vvoda,nxfun]&,
+stablePitchAndRoll[#,"Nakl. uchastok",V[t]<vvyvoda,nxfun]&,
 ruchkaOtSebya[#,nyvyvoda,-\[Theta]vvoda,nxfun]&,
 prevmanevr]]
 
