@@ -132,8 +132,10 @@ equations[form,initialconditions,gammafun,nyfun,nxfun]
 {WhenEvent[{AllTrue[{t>0.01,V[t]*globalmps>helicopter["Vmax"]},TrueQ]},{Message[imaneuver::vmax,helicopter["Vmax"],helicopter["Type"],Round[t,0.001]];"StopIntegration"}]}
 ~Join~
 {WhenEvent[{AllTrue[{t>0.01,V[t]<0},TrueQ]},{Message[imaneuver::vzero,Round[t,0.001]];"StopIntegration"}]}
+(*~Join~
+{WhenEvent[{AllTrue[{t>0.01,nyfun>nyAvaliable[helicopter,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nymax,Round[nyAvaliable[helicopter,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001],Round[y[t],0.001],Round[V[t]globalmps,0.001]];"StopIntegration"}]}*)
 ~Join~
-{WhenEvent[{AllTrue[{t>0.01,nyfun>nyAvaliable[helicopter,G,temp,y[t],V[t]]},TrueQ]},{Message[imaneuver::nymax,Round[nyAvaliable[helicopter,G,temp,y[t],V[t]],0.001],helicopter["Type"],Round[t,0.001],Round[y[t],0.001],Round[V[t]globalmps,0.001]];"StopIntegration"}]}
+{WhenEvent[{AllTrue[{t>0.01,nyfun>helicopter["nyMax"]},TrueQ]},{Message[imaneuver::nymax,helicopter["nyMax"],helicopter["Type"],Round[t,0.001],Round[y[t],0.001],Round[V[t]globalmps,0.001]];"StopIntegration"}]}
 ~Join~
 {WhenEvent[{AllTrue[{t>0.01,nxfun>nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0]},TrueQ]},{Message[imaneuver::nxmax,Round[nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0],0.001],helicopter["Type"],Round[t,0.001],Round[nyfun,0.001]];"StopIntegration"}]},
 
