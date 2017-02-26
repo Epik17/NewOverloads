@@ -62,7 +62,7 @@ joinEvent[arg_,newevent_]:={arg,newevent}
 (* ::Input::Initialization:: *)
 ClearAll@razgon
 razgon::verror="V final is less or equal V initial";
-razgon[prevmanevr_?manevrQ,Vdesired_]:=If[Vdesired>(lastState@prevmanevr)["V"],stablePitchAndRoll[prevmanevr,joinEvent[V[t]==Vdesired,V'[t]<0.001],nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)["ny"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-0.01],
+razgon[prevmanevr_?manevrQ,Vdesired_]:=If[Vdesired>(lastState@prevmanevr)["V"],stablePitchAndRoll[prevmanevr,joinEvent[V[t]==Vdesired,V'[t]<0.01],nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)["ny"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-0.01],
 (Message[razgon::verror];$Failed)
 ]
 setConsistencyChecks[razgon]
