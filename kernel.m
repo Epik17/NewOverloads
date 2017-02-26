@@ -365,10 +365,9 @@ ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluate
 (* ::Input::Initialization:: *)
 ClearAll@myComposition
 SetAttributes[myComposition,HoldFirst]
-(*myComposition[maneuver__,initial_?(initialConditionsQ[#]||manevrQ[#]&)]:=join@Rest@ComposeList[{maneuver},initial]*)
 myComposition[maneuver__,initial_?initialConditionsQ,Optional[name_String,"Composition"]]:=
 With[{composelist=ComposeList[{maneuver},initial] },
-AssociationThread[{"Name","Helicopter","Weight","Temperature","Interpolating functions"},{name,composelist[[2]]["Helicopter"],composelist[[2]]["Weight"],composelist[[2]]["Temperature"],join@Rest@composelist}]]
+AssociationThread[{"Name","Helicopter","Weight","Temperature","Interpolating functions"},{name,composelist[[2]]["Helicopter"],composelist[[2]]["Weight"],composelist[[2]]["Temperature"],join@DeleteDuplicates@Rest@composelist}]]
 
 
 myComposition[maneuver__,initial_?manevrQ,Optional[name_String,"Composition"]]:=AssociationThread[{"Name","Helicopter","Weight","Temperature","Interpolating functions"},{name,initial["Helicopter"],initial["Weight"],initial["Temperature"],join@DeleteDuplicates@Rest@ComposeList[{maneuver},initial]}]
