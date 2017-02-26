@@ -39,7 +39,7 @@ Piecewise[{{ny0+If[ny1>ny0,1,-1]k t,t<=T},{ny1,t>T}}]
 
 (* ::Input::Initialization:: *)
 ClearAll@nxZad
-nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nxaval=(*Echo[#,"1"]&@*)nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,0](*Echo[#,"2"]&@*)(*-nxAvaliable[helicopter,1,G,temp,hManevraCurrent,V0,0]*)},If[nxzad<=nxaval,nxzad,nxaval]]
+nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nxaval=(*Echo[#,"1"]&@*)nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,0]-0.01(*Echo[#,"2"]&@*)(*-nxAvaliable[helicopter,1,G,temp,hManevraCurrent,V0,0]*)},If[nxzad<=nxaval,nxzad,nxaval]]
 
 
 (* ::Input::Initialization:: *)
@@ -62,7 +62,7 @@ joinEvent[arg_,newevent_]:={arg,newevent}
 (* ::Input::Initialization:: *)
 ClearAll@razgon
 razgon::verror="V final is less or equal V initial";
-razgon[prevmanevr_?manevrQ,Optional[name_String,"Razgon"],Vdesired_]:=If[Vdesired>(lastState@prevmanevr)["V"],stablePitchAndRoll[prevmanevr,name,joinEvent[V[t]==Vdesired,V'[t]<0.01],nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)["ny"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-0.01],
+razgon[prevmanevr_?manevrQ,Optional[name_String,"Razgon"],Vdesired_]:=If[Vdesired>(lastState@prevmanevr)["V"],stablePitchAndRoll[prevmanevr,name,joinEvent[V[t]==Vdesired,V'[t]<0.01],nxAvaliable[prevmanevr["Helicopter"],Cos[(lastState@prevmanevr)["ny"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]],
 (Message[razgon::verror];$Failed)
 ]
 setConsistencyChecks[razgon]
