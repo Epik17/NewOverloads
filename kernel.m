@@ -159,7 +159,8 @@ Sow[N@nxfun,nx],
 Sow[N@nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0],nxavaliable],
 Sow[3.6V[t],VV],
 Sow[t,tt],
-Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot]
+Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot],
+Sow[solvefor[equations[form,"t"],Derivative[1][V][t]]/.gammafunnyfunnxfunRule,a]
 }
 ])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]}] (* domain correction *) 
 
@@ -352,7 +353,7 @@ SetAttributes[idetails,HoldFirst]
 SetAttributes[details,HoldFirst]
 
 idetails[man_,tags_]:=ReleaseHold[Flatten[(Reap[man;,tags])[[2]],1]]
-details[man_,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nyavaliable,nx,nxavaliable,VV}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]
+details[man_,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nyavaliable,nx,nxavaliable,VV,a}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]
 ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
 
 
