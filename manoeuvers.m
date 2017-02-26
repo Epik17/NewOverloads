@@ -111,7 +111,7 @@ ruchkaNaSebya[#,"Vvod v gorku",nyvvoda,\[Theta]vvoda,100500,dnxa]&,
 If[(*Echo[#,"V",3.6#&]&@*)(lastState@#)["V"]>=vvyvoda,
 stablePitchAndRoll[#,"Nakl. uchastok",V[t]<vvyvoda,nxfun],
 (Message[gorka::noslope];#)(* creates duplicate which will be deleted in myComposition *)]&,
-ruchkaOtSebya[#,"Vyvod iz gorki",nyvyvoda,-\[Theta]vvoda,Sin[\[Theta][t]]+dnxa,dnxa]&,
+ruchkaOtSebya[#,"Vyvod iz gorki",nyvyvoda,-\[Theta]vvoda,(*Sin[\[Theta][t]]+dnxa*)100500,dnxa]&,
 prevmanevr,
 "Gorka"]
 ]
