@@ -34,7 +34,7 @@ Clear[t,x,y,z,\[Theta],\[Psi],V,\[Gamma],nya,nxa,g,tadd,gamadd,nyadd,nxadd,tt,VV
 
 (* ::Input::Initialization:: *)
 Clear@interpolFunListQ
-interpolFunListQ[arg_]:=MatchQ[arg,{Rule[___,InterpolatingFunction[___][___]]..}]
+interpolFunListQ[arg_]:=Quiet@MatchQ[arg,{Rule[___,InterpolatingFunction[___][___]]..}]
 
 
 (* ::Input::Initialization:: *)
@@ -72,13 +72,13 @@ domain[manevr_?manevrQ]"]
 
 (* ::Input::Initialization:: *)
 ClearAll@tStart
-tStart[manevrresult_?interpolFunListQ]:=First@domain@manevrresult
+tStart[manevrresult_?(interpolFunListQ[#]||joinedinterpolFunListQ[#]&)]:=First@domain@manevrresult
 (*ConsistencyChecked*)
 
 
 (* ::Input::Initialization:: *)
 ClearAll@tFinal
-tFinal[manevrresult_?interpolFunListQ]:=Last@domain@manevrresult
+tFinal[manevrresult_?(interpolFunListQ[#]||joinedinterpolFunListQ[#]&)]:=Last@domain@manevrresult
 (*ConsistencyChecked*)
 
 
@@ -100,14 +100,19 @@ ErrorChecking`setConsistencyChecks[appendt,"Functions symbols list must contain 
 
 (* ::Input::Initialization:: *)
 ClearAll@manevrQ
-manevrQ[arg_Association]:=AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Tally[SetPrecision[domain/@arg["Interpolating functions"][[All,2]],50]][[1,2]]
+manevrQ[arg_Association]:=(AnyTrue[arg,interpolFunListQ]&&Length[arg["Interpolating functions"]]==Tally[SetPrecision[domain/@arg["Interpolating functions"][[All,2]],50]][[1,2]])||joinedinterpolFunListQ[arg["Interpolating functions"]]
 manevrQ[___]:=False
 
 
 (* ::Input::Initialization:: *)
+(*ClearAll@joinedmanevrQ
+joinedmanevrQ[arg_?manevrQ]:=Quiet@MatchQ[arg["Interpolating functions"],{Rule[___,Piecewise[___]]..}]*)
+
+
+(* ::Input::Initialization:: *)
 ClearAll@lastState
-lastState[manevrresult_?interpolFunListQ]:=
-AssociationThread[{"x","y","z","\[Theta]","\[Psi]","V","\[Gamma]","ny","nx"}->((appendt@(functionslist~Join~{\[Gamma],nyy,nxx}))/.manevrresult)/.{t->tFinal[manevrresult]}]
+lastState[manevrresult_?(interpolFunListQ[#]||joinedinterpolFunListQ[#]&)]:=
+AssociationThread[{"x","y","z","\[Theta]","\[Psi]","V","\[Gamma]","ny","nx"}->(appendt@(functionslist~Join~{\[Gamma],nyy,nxx}))/.manevrresult/.{t->tFinal[manevrresult]}]
 
 lastState[manevr_?manevrQ]:=lastState@manevr["Interpolating functions"]
 
@@ -366,7 +371,7 @@ With[{composelist=ComposeList[{maneuver},initial] },
 AssociationThread[{"Name","Helicopter","Weight","Temperature","Interpolating functions"},{name,composelist[[2]]["Helicopter"],composelist[[2]]["Weight"],composelist[[2]]["Temperature"],join@Rest@composelist}]]
 
 
-myComposition[maneuver__,initial_?manevrQ,Optional[name_String,"Composition"]]:=AssociationThread[{"Name","Helicopter","Weight","Temperature","Interpolating functions"},{name,initial["Helicopter"],initial["Weight"],initial["Temperature"],join@Rest@ComposeList[{maneuver},initial]}]
+myComposition[maneuver__,initial_?manevrQ,Optional[name_String,"Composition"]]:=AssociationThread[{"Name","Helicopter","Weight","Temperature","Interpolating functions"},{name,initial["Helicopter"],initial["Weight"],initial["Temperature"],join@DeleteDuplicates@Rest@ComposeList[{maneuver},initial]}]
 
 
 
