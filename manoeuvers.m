@@ -102,8 +102,9 @@ nxfun:=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["T
 myComposition[
 ruchkaNaSebya[#,"Vvod v gorku",nyvvoda,\[Theta]vvoda,nxfun]&,
 stablePitchAndRoll[#,"Nakl. uchastok",V[t]<vvyvoda,nxfun]&,
-ruchkaOtSebya[#,nyvyvoda,-\[Theta]vvoda,nxfun]&,
-prevmanevr]]
+ruchkaOtSebya[#,"Vyvod iz gorki",nyvyvoda,-\[Theta]vvoda,nxfun]&,
+prevmanevr,
+"Gorka"]]
 
 
 

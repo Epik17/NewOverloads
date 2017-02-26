@@ -360,8 +360,9 @@ ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluate
 (* ::Input::Initialization:: *)
 ClearAll@myComposition
 SetAttributes[myComposition,HoldFirst]
-myComposition[maneuver__,initial_?(initialConditionsQ[#]||manevrQ[#]&)]:=join@Rest@ComposeList[{maneuver},initial]
-(*myComposition[maneuver__,prevmanevr_?manevrQ]:=join@Rest@ComposeList[{maneuver},prevmanevr]*)
+(*myComposition[maneuver__,initial_?(initialConditionsQ[#]||manevrQ[#]&)]:=join@Rest@ComposeList[{maneuver},initial]*)
+myComposition[maneuver__,initial_?initialConditionsQ,Optional[name_String,"ruchkaOtSebya"]]:=join@Rest@ComposeList[{maneuver},initial] (* \:0434\:043e\:0434\:0435\:043b\:0430\:0442\:044c! \:0438\:0437 \:043f\:0435\:0440\:0432\:043e\:0433\:043e \:043c\:0430\:043d\:0435\:0432\:0440\:0430 \:043d\:0443\:0436\:043d\:043e \:0432\:044b\:0442\:0430\:0449\:0438\:0442\:044c \:0432\:0435\:0440\:0442\:043e\:043b\:0435\:0442, \:0432\:0435\:0441, \:0442\:0435\:043c\:043f\:0435\:0440\:0430\:0442\:0443\:0440\:0443 *)
+myComposition[maneuver__,initial_?manevrQ,Optional[name_String,"Composition"]]:=AssociationThread[{"Name","Helicopter","Weight","Temperature","Interpolating functions"},{name,initial["Helicopter"],initial["G"],initial["Temperature"],join@Rest@ComposeList[{maneuver},initial]}]
 
 
 
