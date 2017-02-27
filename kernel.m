@@ -105,11 +105,6 @@ manevrQ[___]:=False
 
 
 (* ::Input::Initialization:: *)
-(*ClearAll@joinedmanevrQ
-joinedmanevrQ[arg_?manevrQ]:=Quiet@MatchQ[arg["Interpolating functions"],{Rule[___,Piecewise[___]]..}]*)
-
-
-(* ::Input::Initialization:: *)
 ClearAll@lastState
 lastState[manevrresult_?(interpolFunListQ[#]||joinedinterpolFunListQ[#]&)]:=
 AssociationThread[{"x","y","z","\[Theta]","\[Psi]","V","\[Gamma]","ny","nx"}->(appendt@(functionslist~Join~{\[Gamma],nyy,nxx}))/.manevrresult/.{t->tFinal[manevrresult]}]
