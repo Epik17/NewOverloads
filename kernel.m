@@ -126,8 +126,8 @@ imaneuver::vmax="Maximal velocity `1` kph reached for `2` at local time = `3` s"
 imaneuver::vzero="Velocity has become less than zero at local time = `1` s";
 imaneuver::nymax="Maximal \!\(\*SubscriptBox[\(n\), \(y\)]\) = `1` reached for `2` at local time = `3` s, y = `4` m, V = `5` kph";
 imaneuver::nxmax="Maximal \!\(\*SubscriptBox[\(n\), \(x\)]\) = `1` reached for `2` at local time = `3` s when \!\(\*SubscriptBox[\(n\), \(y\)]\) = `4`";
-imaneuver[helicopter_,form_,initialconditions_,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_]:=Module[
-{gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->globalg},allgood},
+imaneuver[Optional[name_String,"Unknown"],helicopter_,form_,initialconditions_,G_,temp_,gammafun_,nyfun_,nxfun_,event_,t0_]:=Module[
+{gammafunnyfunnxfunRule={\[Gamma]->gammafun,nya->nyfun,nxa->nxfun,g->globalg},allgood,fortag=RandomReal[]},
 
 (First@NDSolve[
 equations[form,initialconditions,gammafun,nyfun,nxfun]
@@ -156,16 +156,16 @@ Sow[N@nyfun,nyadd],
 Sow[N@nxfun,nxadd],
 
 (*for details*)
-Sow[solvefor[equations[form,"t"],Derivative[1][\[Theta]][t]]/.gammafunnyfunnxfunRule,\[Theta]dot],
-Sow[N[gammafun]/Degree,gam],
-Sow[N@nyfun,ny],
-Sow[N@nyAvaliable[helicopter,G,temp,y[t],V[t]],nyavaliable],
-Sow[N@nxfun,nx],
-Sow[N@nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0],nxavaliable],
-Sow[3.6V[t],VV],
-Sow[t,tt],
-Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot],
-Sow[solvefor[equations[form,"t"],Derivative[1][V][t]]/.gammafunnyfunnxfunRule,a]
+Sow[solvefor[equations[form,"t"],Derivative[1][\[Theta]][t]]/.gammafunnyfunnxfunRule,\[Theta]dot[name]],
+Sow[N[gammafun]/Degree,gam[name]],
+Sow[N@nyfun,ny[name]],
+Sow[N@nyAvaliable[helicopter,G,temp,y[t],V[t]],nyavaliable[name]],
+Sow[N@nxfun,nx[name]],
+Sow[N@nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0],nxavaliable[name]],
+Sow[3.6V[t],VV[name]],
+Sow[t,tt[name]],
+Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot[name]],
+Sow[solvefor[equations[form,"t"],Derivative[1][V][t]]/.gammafunnyfunnxfunRule,a[name]]
 }
 ])/.{(fun:InterpolatingFunction[___])[t]:>fun[t-t0]}] (* domain correction *) 
 
@@ -215,7 +215,7 @@ maneuver[Optional[name_String,"Unknown"],helicopter_?helicopterQ,form_?formQ,ini
 
 If[allGood[helicopter,Last@initialconditions,G,temp],
 
-result=Check[Reap[imaneuver[helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0],{tadd,gamadd,nyadd,nxadd}],$Failed];
+result=Check[Reap[imaneuver[name,helicopter,form,initialconditions,G,temp,gammafun,nyfun,nxfun,event,t0],{tadd,gamadd,nyadd,nxadd}],$Failed];
 If[Length[result]>1&&interpolFunListQ[result[[1]]],
 mainfunctions=result[[1]];
 
@@ -357,9 +357,13 @@ ClearAll[idetails,details]
 SetAttributes[idetails,HoldFirst]
 SetAttributes[details,HoldFirst]
 
-idetails[man_,tags_]:=ReleaseHold[Flatten[(Reap[man;,tags])[[2]],1]]
-details[man_,Optional[tags_,{tt,\[Theta]dot,\[Psi]dot,gam,ny,nyavaliable,nx,nxavaliable,VV,a}]]:=With[{completedtags=DeleteDuplicates@Prepend[tags,tt]},ReleaseHold[Sort[{completedtags}~Join~Transpose[idetails[man,completedtags]],#1[[1]]<#2[[1]]&]]]
-ErrorChecking`setConsistencyChecks[details,"First argument must be an unevaluated maneuver: maneuver[initconds,gammafun,nyfun,nxfun,event]"];
+idetails[man_,tags_]:=ReleaseHold[(Reap[man;,tags][[2]])]
+
+details[man_,tags_:{tt[_],\[Theta]dot[_],\[Psi]dot[_],gam[_],ny[_],nyavaliable[_],nx[_],nxavaliable[_],VV[_],a[_]}]:=
+With[
+{completedtags=DeleteDuplicates@Prepend[tags,tt[_]]},
+{completedtags/.{x_[_]:>x}}~Join~Flatten[Sort[#,#1[[1]]<#2[[1]]&]&/@Transpose/@Transpose@idetails[man,completedtags],1]
+]
 
 
 (* ::Input::Initialization:: *)
