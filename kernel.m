@@ -387,4 +387,28 @@ myComposition[maneuver__,initial_?manevrQ,Optional[name_String,"Composition"]]:=
 assocThread[initial,name,ComposeList[{maneuver},initial]]
 
 
+(* ::Input::Initialization:: *)
+ClearAll@numberOfparts
+numberOfparts[man_?manevrQ]:=With[
+{intfuns=man["Interpolating functions"]},
+If[joinedinterpolFunListQ[intfuns],
+Length@intfuns[[1,2,1]],
+1
+]
+]
 
+
+(* ::Input::Initialization:: *)
+ClearAll[idetails,details]
+SetAttributes[idetails,HoldFirst]
+SetAttributes[details,HoldFirst]
+idetails::reaperror="Reap error. It is possible that not all parts of maneuver have names or some of the names are the same";
+idetails[man_,tags_]:=Module[{res=ReleaseHold[(Reap[man,tags])]},If[numberOfparts@res[[1]]=!=Length@res[[2,1]],Message[idetails::reaperror]];
+res[[2]]
+]
+
+details[man_,tags_:{tt[_],localtt[_],xx[_],yy[_],zz[_],\[Theta]\[Theta][_],\[Theta]dot[_],\[Psi]\[Psi][_],\[Psi]dot[_],gam[_],ny[_],nyavaliable[_],nx[_],nxavaliable[_],VV[_],a[_]}]:=
+With[
+{completedtags=DeleteDuplicates@Join[{tt[_],localtt[_]},tags]},
+{completedtags/.{x_[_]:>x}}~Join~Flatten[(Sort[#,#1[[1]]<#2[[1]]&]&/@Transpose/@Transpose@idetails[man,completedtags]),1]
+]
