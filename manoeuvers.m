@@ -39,7 +39,7 @@ Piecewise[{{ny0+If[ny1>ny0,1,-1]k t,t<=T},{ny1,t>T}}]
 
 (* ::Input::Initialization:: *)
 ClearAll@nxZad
-nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nxaval=(*Echo[#,"1"]&@*)nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,0]-0.01(*Echo[#,"2"]&@*)(*-nxAvaliable[helicopter,1,G,temp,hManevraCurrent,V0,0]*)},If[nxzad<=nxaval,nxzad,nxaval]]
+nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nxaval=(*Echo[#,"1"]&@*)nxAvaliable[helicopter,ny,G,temp,hManevraCurrent,V,0]-0.001(*Echo[#,"2"]&@*)(*-nxAvaliable[helicopter,1,G,temp,hManevraCurrent,V0,0]*)},If[nxzad<=nxaval,nxzad,nxaval]]
 
 
 (* ::Input::Initialization:: *)
@@ -112,7 +112,7 @@ prevmanevr,
 (* ::Input::Initialization:: *)
 ClearAll@pikirovanie
 pikirovanie[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=Module[
-{dnxa=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"],0],nxfun},
+{dnxa=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"],0]},
 
 myComposition[
 ruchkaOtSebya[#,"Vvod v pike",nyvvoda,-\[Theta]vvoda,(*Sin[\[Theta][t]]+dnxa*)100500,dnxa]&,
