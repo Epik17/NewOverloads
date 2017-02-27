@@ -44,7 +44,7 @@ nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nx
 
 (* ::Input::Initialization:: *)
 ClearAll@stablePitchAndRoll
-stablePitchAndRoll[prevmanevr_?manevrQ,Optional[name_String,"Stable"],event_,nxfun_,dnxa_:0]:=With[{laststate=lastState@prevmanevr},maneuver[name,"Classic",prevmanevr,laststate["\[Gamma]"],Cos[laststate["\[Theta]"]],nxZad[nxfun,prevmanevr["Helicopter"],Cos[laststate["\[Theta]"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-dnxa,event]]
+stablePitchAndRoll[prevmanevr_?manevrQ,Optional[name_String,"Stable"],event_,nxfun_,dnxa_:0]:=With[{laststate=lastState@prevmanevr},maneuver[name,"Classic",prevmanevr,laststate["\[Gamma]"],(Cos[laststate["\[Theta]"]]/Cos[laststate["\[Gamma]"]]),nxZad[nxfun,prevmanevr["Helicopter"],Cos[laststate["\[Theta]"]]/Cos[laststate["\[Gamma]"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-dnxa,event]]
 
 
 (* ::Input::Initialization:: *)
@@ -134,12 +134,39 @@ prevmanevr,
 
 (* ::Input::Initialization:: *)
 ClearAll@gammafun
-gammafun[delta\[Gamma]_,tvvod_,\[Gamma]0_]:=gammafun[delta\[Gamma],tvvod,\[Gamma]0]=If[Abs[delta\[Gamma]/tvvod t]<Abs[delta\[Gamma]],delta\[Gamma]/tvvod t+\[Gamma]0,\[Gamma]0+delta\[Gamma]]
+gammafun[delta\[Gamma]_,tvvod_,\[Gamma]0_]:=If[Abs[delta\[Gamma]/tvvod t]<=Abs[delta\[Gamma]],delta\[Gamma]/tvvod t+\[Gamma]0,\[Gamma]0+delta\[Gamma]]
 
 
 (* ::Input::Initialization:: *)
 ClearAll@ruchkaVbok
-ruchkaVbok[prevmanevr_?manevrQ,Optional[name_String,"ruchkaVbok"],delta\[Gamma]_,nxfun_,dnxa_:0]:=With[{tvvod=Abs[delta\[Gamma]/(5\[Degree])]},maneuver["Classic",prevmanevr,gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]],1/Cos[gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]]],nxfun,{t>tvvod}]]
+ruchkaVbok[prevmanevr_?manevrQ,Optional[name_String,"ruchkaVbok"],delta\[Gamma]_,nxfun_,dnxa_:0]:=With[{tvvod=Abs[delta\[Gamma]/(5\[Degree])]},maneuver["Classic",prevmanevr,gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]],1/Cos[gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]]],nxfun,{t>=tvvod,Abs[gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]]]>=Abs[(lastState@prevmanevr)["\[Gamma]"]+delta\[Gamma]]}]]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@gammafun
+gammafun[delta\[Gamma]_,tvvod_,\[Gamma]0_]:=delta\[Gamma]/tvvod t+\[Gamma]0
+
+
+(* ::Input::Initialization:: *)
+ClearAll@ruchkaVbok
+ruchkaVbok[prevmanevr_?manevrQ,Optional[name_String,"ruchkaVbok"],delta\[Gamma]_,nxfun_,dnxa_:0]:=With[{tvvod=Abs[delta\[Gamma]/(5\[Degree])]},maneuver["Classic",prevmanevr,gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]],1/Cos[gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]]],nxfun,{t>=tvvod}]]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@virage
+virage::maxgamma="Roll can't be greater than `1`\[Degree]";
+virage[prevmanevr_?manevrQ,Optional[name_String,"Virage"],delta\[Gamma]_,delta\[Psi]_]:=Module[
+{\[Psi]0=(lastState@prevmanevr)["\[Psi]"],\[Gamma]max=(*Echo[#,"\[Gamma]max",#/Degree&]&@*)(0.97ArcCos[1/nyAvaliable[prevmanevr["Helicopter"],prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"]]])},
+If[Abs[delta\[Gamma]]<\[Gamma]max,
+myComposition[
+ruchkaVbok[#,"Vvod v virage",delta\[Gamma],Sin[\[Theta][t]]]&,
+constVelocity[#,"V = const",Abs[\[Psi][t]-\[Psi]0]>=Abs[Abs@delta\[Psi]-Abs[(lastState@#)["\[Psi]"]-\[Psi]0]]]&,
+ruchkaVbok[#,"Vyvod iz virazha",-delta\[Gamma],Sin[\[Theta][t]]]&,
+prevmanevr,
+name],
+(Message[virage::maxgamma,Round[\[Gamma]max/Degree,0.01]];$Failed)
+]
+]
 
 
 
