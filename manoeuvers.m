@@ -132,4 +132,14 @@ prevmanevr,
 ]
 
 
+(* ::Input::Initialization:: *)
+ClearAll@gammafun
+gammafun[delta\[Gamma]_,tvvod_,\[Gamma]0_]:=gammafun[delta\[Gamma],tvvod,\[Gamma]0]=If[Abs[delta\[Gamma]/tvvod t]<Abs[delta\[Gamma]],delta\[Gamma]/tvvod t+\[Gamma]0,\[Gamma]0+delta\[Gamma]]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@ruchkaVlevo
+ruchkaVlevo[prevmanevr_?manevrQ,Optional[name_String,"ruchkaVlevo"],delta\[Gamma]_,nxfun_,dnxa_:0]:=maneuver["Classic",prevmanevr,gammafun[delta\[Gamma],4,(lastState@prevmanevr)["\[Gamma]"]],1/Cos[gammafun[delta\[Gamma],4,(lastState@prevmanevr)["\[Gamma]"]]],nxfun,{t>4}]
+
+
 
