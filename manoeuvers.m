@@ -117,4 +117,20 @@ prevmanevr,
 ]
 
 
+(* ::Input::Initialization:: *)
+ClearAll@pikirovanie
+pikirovanie[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=Module[
+{dnxa=Echo@nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"],0],nxfun},
+
+nxfun:=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-dnxa;
+
+myComposition[
+ruchkaOtSebya[#,"Vvod v pike",nyvvoda,-\[Theta]vvoda,(*Sin[\[Theta][t]]+dnxa*)100500,dnxa]&,
+stablePitchAndRoll[#,"Nakl. uchastok",V[t]>vvyvoda,nxfun]&,
+(*ruchkaNaSebya[#,"Vyvod iz pike",nyvyvoda,\[Theta]vvoda,100500,dnxa]&,*)
+prevmanevr,
+"Pikirovanie"]
+]
+
+
 
