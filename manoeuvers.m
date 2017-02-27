@@ -120,7 +120,6 @@ ruchkaOtSebya[#,"Vvod v pike",nyvvoda,-\[Theta]vvoda,(*Sin[\[Theta][t]]+dnxa*)10
 If[(*Echo[#,"V",3.6#&]&@*)(lastState@#)["V"]<=vvyvoda,
 stablePitchAndRoll[#,"Nakl. uchastok",V[t]>=vvyvoda,100500,dnxa],
 (Message[pikirovanie::noslope];#)(* creates duplicate which will be deleted in myComposition *)]&,
-(*stablePitchAndRoll[#,"Nakl. uchastok",V[t]>vvyvoda,100500,dnxa]&,*)
 ruchkaNaSebya[#,"Vyvod iz pike",nyvyvoda,\[Theta]vvoda,100500,dnxa]&,
 prevmanevr,
 "Pikirovanie"]
