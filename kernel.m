@@ -164,6 +164,7 @@ Sow[N@nxfun,nx[name]],
 Sow[N@nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0],nxavaliable[name]],
 Sow[3.6V[t],VV[name]],
 Sow[t+t0,tt[name]],
+Sow[t,localtt[name]],
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot[name]],
 Sow[solvefor[equations[form,"t"],Derivative[1][V][t]]/.gammafunnyfunnxfunRule,a[name]]
 }
@@ -359,9 +360,9 @@ SetAttributes[details,HoldFirst]
 
 idetails[man_,tags_]:=ReleaseHold[(Reap[man;,tags][[2]])]
 
-details[man_,tags_:{tt[_],\[Theta]dot[_],\[Psi]dot[_],gam[_],ny[_],nyavaliable[_],nx[_],nxavaliable[_],VV[_],a[_]}]:=
+details[man_,tags_:{tt[_],localtt[_],\[Theta]dot[_],\[Psi]dot[_],gam[_],ny[_],nyavaliable[_],nx[_],nxavaliable[_],VV[_],a[_]}]:=
 With[
-{completedtags=DeleteDuplicates@Prepend[tags,tt[_]]},
+{completedtags=DeleteDuplicates@(*Prepend[tags,tt[_]]}*)Join[{tt[_],localtt[_]},tags]},
 {completedtags/.{x_[_]:>x}}~Join~Flatten[Sort[#,#1[[1]]<#2[[1]]&]&/@Transpose/@Transpose@idetails[man,completedtags],1]
 ]
 
