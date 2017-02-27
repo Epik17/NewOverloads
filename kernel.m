@@ -163,7 +163,7 @@ Sow[N@nyAvaliable[helicopter,G,temp,y[t],V[t]],nyavaliable[name]],
 Sow[N@nxfun,nx[name]],
 Sow[N@nxAvaliable[helicopter,nyfun,G,temp,y[t],V[t],0],nxavaliable[name]],
 Sow[3.6V[t],VV[name]],
-Sow[t,tt[name]],
+Sow[t+t0,tt[name]],
 Sow[solvefor[equations[form,"t"],Derivative[1][\[Psi]][t]]/.gammafunnyfunnxfunRule,\[Psi]dot[name]],
 Sow[solvefor[equations[form,"t"],Derivative[1][V][t]]/.gammafunnyfunnxfunRule,a[name]]
 }
