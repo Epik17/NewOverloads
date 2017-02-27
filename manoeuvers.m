@@ -43,14 +43,8 @@ nxZad[nxzad_,helicopter_?helicopterQ,ny_,G_,temp_,hManevraCurrent_,V_]:=With[{nx
 
 
 (* ::Input::Initialization:: *)
-ClearAll@ruchkaNaSebya 
-(* zad nx *)
-ruchkaNaSebya[prevmanevr_?manevrQ,Optional[name_String,"ruchkaNaSebya"],nyzad_,delta\[Theta]_,nxfun_]:=maneuver[name,"Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],(*Echo[#,"nxZad"]&@*)nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],\[Theta][t]>(lastState@prevmanevr)["\[Theta]"] +delta\[Theta]] 
-
-
-(* ::Input::Initialization:: *)
 ClearAll@stablePitchAndRoll
-stablePitchAndRoll[prevmanevr_?manevrQ,Optional[name_String,"Stable"],event_,nxfun_]:=With[{laststate=lastState@prevmanevr},maneuver[name,"Classic",prevmanevr,laststate["\[Gamma]"],Cos[laststate["\[Theta]"]],nxZad[nxfun,prevmanevr["Helicopter"],Cos[laststate["\[Theta]"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]],event]]
+stablePitchAndRoll[prevmanevr_?manevrQ,Optional[name_String,"Stable"],event_,nxfun_,dnxa_:0]:=With[{laststate=lastState@prevmanevr},maneuver[name,"Classic",prevmanevr,laststate["\[Gamma]"],Cos[laststate["\[Theta]"]],nxZad[nxfun,prevmanevr["Helicopter"],Cos[laststate["\[Theta]"]],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-dnxa,event]]
 
 
 (* ::Input::Initialization:: *)
@@ -102,14 +96,12 @@ prevmanevr]
 ClearAll@gorka
 gorka::noslope="Impossible to create rectilinear part of maneuver. Continuing without it";
 gorka[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=Module[
-{dnxa=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"],0],nxfun},
-
-nxfun:=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-dnxa;
+{dnxa=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"],0]},
 
 myComposition[
 ruchkaNaSebya[#,"Vvod v gorku",nyvvoda,\[Theta]vvoda,100500,dnxa]&,
 If[(*Echo[#,"V",3.6#&]&@*)(lastState@#)["V"]>=vvyvoda,
-stablePitchAndRoll[#,"Nakl. uchastok",V[t]<vvyvoda,nxfun],
+stablePitchAndRoll[#,"Nakl. uchastok",V[t]<vvyvoda,100500,dnxa],
 (Message[gorka::noslope];#)(* creates duplicate which will be deleted in myComposition *)]&,
 ruchkaOtSebya[#,"Vyvod iz gorki",nyvyvoda,-\[Theta]vvoda,(*Sin[\[Theta][t]]+dnxa*)100500,dnxa]&,
 prevmanevr,
@@ -120,14 +112,12 @@ prevmanevr,
 (* ::Input::Initialization:: *)
 ClearAll@pikirovanie
 pikirovanie[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=Module[
-{dnxa=Echo@nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"],0],nxfun},
-
-nxfun:=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t],0]-dnxa;
+{dnxa=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"],0],nxfun},
 
 myComposition[
 ruchkaOtSebya[#,"Vvod v pike",nyvvoda,-\[Theta]vvoda,(*Sin[\[Theta][t]]+dnxa*)100500,dnxa]&,
-stablePitchAndRoll[#,"Nakl. uchastok",V[t]>vvyvoda,nxfun]&,
-(*ruchkaNaSebya[#,"Vyvod iz pike",nyvyvoda,\[Theta]vvoda,100500,dnxa]&,*)
+stablePitchAndRoll[#,"Nakl. uchastok",V[t]>vvyvoda,100500,dnxa]&,
+ruchkaNaSebya[#,"Vyvod iz pike",nyvyvoda,\[Theta]vvoda,100500,dnxa]&,
 prevmanevr,
 "Pikirovanie"]
 ]
