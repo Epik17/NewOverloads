@@ -48,6 +48,17 @@ stablePitchAndRoll[prevmanevr_?manevrQ,Optional[name_String,"Stable"],event_,nxf
 
 
 (* ::Input::Initialization:: *)
+ClearAll@constVelocity
+constVelocity[prevmanevr_?manevrQ,Optional[name_String,"constVelocity"],event_]:=stablePitchAndRoll[prevmanevr,name,event,Sin[\[Theta][t]]]
+
+
+(* ::Input::Initialization:: *)
+ClearAll@horizFlight
+horizFlight::bigtheta="Horizontal flight is impossible because \[Theta] is to big: `1` \[Degree]";
+horizFlight[prevmanevr_?manevrQ,event_]:=If[Round[(lastState@prevmanevr)["\[Theta]"],0.0000001]==0,constVelocity[prevmanevr,event],(Message[horizFlight::bigtheta,(lastState@prevmanevr)["\[Theta]"]/Degree];$Failed)]
+
+
+(* ::Input::Initialization:: *)
 ClearAll@joinEvent
 joinEvent[arg_List,newevent_]:=arg~Join~newevent
 joinEvent[arg_,newevent_]:={arg,newevent}
@@ -76,11 +87,6 @@ ruchkaOtSebya[prevmanevr_?manevrQ,Optional[name_String,"ruchkaOtSebya"],nyzad_,d
 ClearAll@ruchkaNaSebya 
 (* zad nx *)
 ruchkaNaSebya[prevmanevr_?manevrQ,Optional[name_String,"ruchkaNaSebya"],nyzad_,delta\[Theta]_,nxfun_,dnxa_:0]:=maneuver[name,"Classic",prevmanevr,0,nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],(*Echo[#,"nxZad"]&@*)nxZad[nxfun,prevmanevr["Helicopter"],nyruchkaVperedNazad[(lastState@prevmanevr)["ny"],nyzad],prevmanevr["Weight"],prevmanevr["Temperature"],y[t],V[t]]-dnxa,\[Theta][t]>(lastState@prevmanevr)["\[Theta]"] +delta\[Theta]] 
-
-
-(* ::Input::Initialization:: *)
-(*ClearAll@horizFlight
-horizFlight[prevmanevr_?manevrQ,event_]:=If[Round[(lastState@prevmanevr)["\[Theta]"],0.0000001]\[Equal]0,stableState[prevmanevr,event],$Failed]*)
 
 
 (* ::Input::Initialization:: *)
