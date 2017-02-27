@@ -111,12 +111,16 @@ prevmanevr,
 
 (* ::Input::Initialization:: *)
 ClearAll@pikirovanie
+pikirovanie::noslope="Impossible to create rectilinear part of maneuver. Continuing without it";
 pikirovanie[prevmanevr_?manevrQ,nyvvoda_,\[Theta]vvoda_,nyvyvoda_,vvyvoda_]:=Module[
 {dnxa=nxAvaliable[prevmanevr["Helicopter"],1,prevmanevr["Weight"],prevmanevr["Temperature"],(lastState@prevmanevr)["y"],(lastState@prevmanevr)["V"],0]},
 
 myComposition[
 ruchkaOtSebya[#,"Vvod v pike",nyvvoda,-\[Theta]vvoda,(*Sin[\[Theta][t]]+dnxa*)100500,dnxa]&,
-stablePitchAndRoll[#,"Nakl. uchastok",V[t]>vvyvoda,100500,dnxa]&,
+If[(*Echo[#,"V",3.6#&]&@*)(lastState@#)["V"]<=vvyvoda,
+stablePitchAndRoll[#,"Nakl. uchastok",V[t]>=vvyvoda,100500,dnxa],
+(Message[pikirovanie::noslope];#)(* creates duplicate which will be deleted in myComposition *)]&,
+(*stablePitchAndRoll[#,"Nakl. uchastok",V[t]>vvyvoda,100500,dnxa]&,*)
 ruchkaNaSebya[#,"Vyvod iz pike",nyvyvoda,\[Theta]vvoda,100500,dnxa]&,
 prevmanevr,
 "Pikirovanie"]
