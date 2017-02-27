@@ -247,7 +247,7 @@ maneuver[Optional[name_String,\"Unknown\"],form_?formQ,prevmaneuver_?manevrQ,gam
 (* ::Input::Initialization:: *)
 Clear@converter
 converter[V]:=3.6
-converter[\[Psi]|\[Theta]]:=1/Degree
+converter[\[Psi]|\[Theta]|\[Gamma]]:=1/Degree
 converter[_]:=1
 
 
