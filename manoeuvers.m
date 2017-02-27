@@ -134,22 +134,12 @@ prevmanevr,
 
 (* ::Input::Initialization:: *)
 ClearAll@gammafun
-gammafun[delta\[Gamma]_,tvvod_,\[Gamma]0_]:=If[Abs[delta\[Gamma]/tvvod t]<=Abs[delta\[Gamma]],delta\[Gamma]/tvvod t+\[Gamma]0,\[Gamma]0+delta\[Gamma]]
-
-
-(* ::Input::Initialization:: *)
-ClearAll@ruchkaVbok
-ruchkaVbok[prevmanevr_?manevrQ,Optional[name_String,"ruchkaVbok"],delta\[Gamma]_,nxfun_,dnxa_:0]:=With[{tvvod=Abs[delta\[Gamma]/(5\[Degree])]},maneuver["Classic",prevmanevr,gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]],1/Cos[gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]]],nxfun,{t>=tvvod,Abs[gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]]]>=Abs[(lastState@prevmanevr)["\[Gamma]"]+delta\[Gamma]]}]]
-
-
-(* ::Input::Initialization:: *)
-ClearAll@gammafun
 gammafun[delta\[Gamma]_,tvvod_,\[Gamma]0_]:=delta\[Gamma]/tvvod t+\[Gamma]0
 
 
 (* ::Input::Initialization:: *)
 ClearAll@ruchkaVbok
-ruchkaVbok[prevmanevr_?manevrQ,Optional[name_String,"ruchkaVbok"],delta\[Gamma]_,nxfun_,dnxa_:0]:=With[{tvvod=Abs[delta\[Gamma]/(5\[Degree])]},maneuver["Classic",prevmanevr,gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]],1/Cos[gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]]],nxfun,{t>=tvvod}]]
+ruchkaVbok[prevmanevr_?manevrQ,Optional[name_String,"ruchkaVbok"],delta\[Gamma]_,nxfun_,dnxa_:0]:=With[{tvvod=Abs[delta\[Gamma]/(5\[Degree])]},maneuver[name,"Classic",prevmanevr,gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]],1/Cos[gammafun[delta\[Gamma],tvvod,(lastState@prevmanevr)["\[Gamma]"]]],nxfun,{t>=tvvod}]]
 
 
 (* ::Input::Initialization:: *)
